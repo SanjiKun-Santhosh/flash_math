@@ -8,7 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart';
-import '../models/user_record.dart';
 
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
