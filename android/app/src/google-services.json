@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "97362753510",
+    "project_id": "flash-math-63868",
+    "storage_bucket": "flash-math-63868.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:97362753510:android:11f2b176c48859ac9cc827",
+        "android_client_info": {
+          "package_name": "com.visan.flash_math"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "97362753510-61ob40bk5q82sqr91ugc405i4epnpt84.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.visan.flash_math",
+            "certificate_hash": "119423fadec627fe6ec1cb7d73f465943e89a1a9"
+          }
+        },
+        {
+          "client_id": "97362753510-2saoj0qnq98o6v20q31j0tjeb6dtop44.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqmq4_OQHahvw3dMTURPt3lP7xdqNd3k4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "97362753510-2saoj0qnq98o6v20q31j0tjeb6dtop44.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
