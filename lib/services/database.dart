@@ -24,6 +24,15 @@ class DatabaseService {
     return await mathCollections.doc(uid).set({"name": name});
   }
 
+  Future <UserRecord?> userDataForProfile() async {
+    final snapshot=await mathCollections.doc(uid).get();
+    if (snapshot.exists) {
+      return _userDataFromSnapshots(snapshot);
+    } else {
+      return null;
+    }
+  }
+
   UserRecord _userDataFromSnapshots(DocumentSnapshot snapshot) {
     Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
     Map<String, String>? gameRecordMap;

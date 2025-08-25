@@ -4,8 +4,10 @@ import 'package:flash_math/addition_algorithm/number_generator.dart';
 import 'package:flash_math/services/database.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/user_record.dart';
+import '../screens/loading.dart';
 import 'game_support/modalBottomSheet.dart';
 
 class Addition extends StatefulWidget {
@@ -28,6 +30,7 @@ class _AdditionState extends State<Addition> {
   final String gameType = GameTypes.addition.name;
   int globalRecord = 0;
   ModalBottomSheet alertDialog = ModalBottomSheet();
+
   @override
   void initState() {
     super.initState();
@@ -53,7 +56,11 @@ class _AdditionState extends State<Addition> {
     _timer = Timer.periodic(oneHundredthOfASecond, (timer) {
       if (_progressValue >= 1.0) {
         timer.cancel();
-        alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal record is $globalRecord',gameMsg: "The Time is over!");
+        alertDialog.showCustomModalBottomSheet(
+          context,
+          outputText: 'Your personal record is $globalRecord',
+          gameMsg: "The Time is over!",
+        );
       } else {
         setState(() {
           _progressValue += 0.01;
@@ -88,16 +95,18 @@ class _AdditionState extends State<Addition> {
     gameRecord.update(gameType, (record) => currentRecord.toString());
     await service.updateUserRecord(gameRecord);
   }
-///use provider instead of assigning Database Service.
+
+  ///use provider instead of assigning Database Service.
   @override
   Widget build(BuildContext context) {
-    Map<String, String>? gameRecord = widget.userRecord?.gameRecord;
-    int currentRecord = globalRecord= int.parse(gameRecord?[gameType] ?? "0");
+    final userRecord = context.watch<UserRecord?>();
+    Map<String, String>? gameRecord = userRecord?.gameRecord;
+    int currentRecord = globalRecord = int.parse(gameRecord?[gameType] ?? "0");
     print(currentRecord);
     final DatabaseService service = DatabaseService(
       uid: widget.userRecord!.uid,
     );
-
+if(userRecord==null){ return Loading();}
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(
@@ -171,15 +180,19 @@ class _AdditionState extends State<Addition> {
                               _isButtonDisabled = true;
                               dispose();
                               if (_record > currentRecord) {
-                                globalRecord=_record;
+                                globalRecord = _record;
                                 updateRecordDatabase(
                                   _record,
                                   service,
                                   gameRecord!,
                                 );
                               }
-                              alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal record is $globalRecord',gameMsg: "The Time is over!");
-
+                              alertDialog.showCustomModalBottomSheet(
+                                context,
+                                outputText:
+                                    'Your personal record is $globalRecord',
+                                gameMsg: "The Time is over!",
+                              );
                             } else {
                               if (_firstValue + _secondValue != _total) {
                                 _getRandom();
@@ -189,15 +202,19 @@ class _AdditionState extends State<Addition> {
                                 _isButtonDisabled = true;
                                 stopProgress();
                                 if (_record > currentRecord) {
-                                  globalRecord=_record;
+                                  globalRecord = _record;
                                   updateRecordDatabase(
                                     _record,
                                     service,
                                     gameRecord!,
                                   );
                                 }
-                                alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal record is $globalRecord',gameMsg: "The Answer is wrong!");
-
+                                alertDialog.showCustomModalBottomSheet(
+                                  context,
+                                  outputText:
+                                      'Your personal record is $globalRecord',
+                                  gameMsg: "The Answer is wrong!",
+                                );
                               }
                             }
                           });
@@ -214,15 +231,19 @@ class _AdditionState extends State<Addition> {
                               _isButtonDisabled = true;
                               dispose();
                               if (_record > currentRecord) {
-                                globalRecord=_record;
+                                globalRecord = _record;
                                 updateRecordDatabase(
                                   _record,
                                   service,
                                   gameRecord!,
                                 );
                               }
-                              alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal best is $globalRecord',gameMsg: "The Time is over!");
-
+                              alertDialog.showCustomModalBottomSheet(
+                                context,
+                                outputText:
+                                    'Your personal best is $globalRecord',
+                                gameMsg: "The Time is over!",
+                              );
                             } else {
                               if (_firstValue + _secondValue == _total) {
                                 _getRandom();
@@ -231,7 +252,7 @@ class _AdditionState extends State<Addition> {
                               } else {
                                 _isButtonDisabled = true;
                                 stopProgress();
-                                if(_record>currentRecord) {
+                                if (_record > currentRecord) {
                                   globalRecord = _record;
                                   updateRecordDatabase(
                                     _record,
@@ -239,8 +260,12 @@ class _AdditionState extends State<Addition> {
                                     gameRecord!,
                                   );
                                 }
-                                alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal best is $globalRecord',gameMsg: "The Answer is wrong!");
-
+                                alertDialog.showCustomModalBottomSheet(
+                                  context,
+                                  outputText:
+                                      'Your personal best is $globalRecord',
+                                  gameMsg: "The Answer is wrong!",
+                                );
                               }
                             }
                           });
@@ -249,14 +274,14 @@ class _AdditionState extends State<Addition> {
                 ),
               ],
             ),
-Text(
-                    "Game on!",
-                    style: TextStyle(
-                      color: Colors.blueGrey,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+            Text(
+              "Game on!",
+              style: TextStyle(
+                color: Colors.blueGrey,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             SizedBox(height: 20),
             currentRecord >= _record
                 ? Text(

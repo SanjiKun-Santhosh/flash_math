@@ -39,3 +39,4 @@ class AppDecoration {
     ),
   );
 }
+const String userHiveBox="User Box";

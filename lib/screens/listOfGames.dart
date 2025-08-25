@@ -36,7 +36,7 @@ class ListOfGames extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (e) => SwitchGames(gameChosen: val),
+                      builder: (context) => SwitchGames(gameChosen: val),
                     ),
                   );
                 },

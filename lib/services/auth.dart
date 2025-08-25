@@ -70,10 +70,12 @@ class Auth {
     try {
       User? user = _auth.currentUser;
       String? currentEmail = user?.email;
-      if (currentEmail != email) {
+      if (email!=currentEmail && email.isNotEmpty) {
         await user!.verifyBeforeUpdateEmail(email);
       }
+      if(password.isNotEmpty){
       await user!.updatePassword(password);
+      }
       return _userFromFireBase(user);
     } catch (e) {
       print(e.toString());
@@ -84,6 +86,10 @@ class Auth {
     User? user = _auth.currentUser;
     return user?.email;
      }
+  Future getUid() async {
+    User? user = _auth.currentUser;
+    return user?.uid;
+  }
 
 
   Future<void> signOut() async {

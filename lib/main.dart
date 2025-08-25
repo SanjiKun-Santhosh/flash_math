@@ -1,44 +1,61 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flash_math/games/addition.dart';
 import 'package:flash_math/models/user.dart';
 import 'package:flash_math/models/user_record.dart';
 import 'package:flash_math/screens/home.dart';
-import 'package:flash_math/screens/profile.dart';
+import 'package:flash_math/screens/profile/profile.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/screens/wrapper.dart';
 import 'package:flash_math/services/auth.dart';
+import 'package:flash_math/services/database.dart';
+import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());
+  await Hive.initFlutter();
+  await Hive.openBox(userHiveBox);
+
+  runApp(
+    MultiProvider(
+      providers: [
+        StreamProvider<MathUser?>.value(
+          value: Auth().mathUser,
+          initialData: null,
+        ),
+        StreamProvider<UserRecord?>(
+          create: (context) {
+            final mathUser = Provider.of<MathUser?>(context, listen: false);
+            return mathUser != null
+                ? DatabaseService(uid: mathUser.uid).userData
+                : const Stream.empty();
+          },
+          initialData: null,
+        ),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return StreamProvider<MathUser?>.value(
-      value: Auth().mathUser,
-      initialData: null,
-      child: MaterialApp(
-        routes: {
-          '/home':(context) => const Template(child: Home()),
-      /*    '/addition':(context) {
+    return MaterialApp(
+      routes: {
+        '/home': (context) => const Template(child: Home()),
+        /*    '/addition':(context) {
           final UserRecord? userRecord = ModalRoute.of(context)!.settings.arguments as UserRecord?;
         return Addition(userRecord: userRecord);
           },*/
-          '/userProfile':(context) => const Template(child: UserProfile()),
-
-        },
-        home: const Wrapper() ,
-      ),
+        '/userProfile': (context) => const Template(child: UserProfile()),
+      },
+      home: const Wrapper(),
     );
   }
 }
-
-

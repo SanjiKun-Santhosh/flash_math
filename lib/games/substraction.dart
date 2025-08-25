@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flash_math/models/user_record.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../addition_algorithm/number_generator.dart';
+import '../screens/loading.dart';
 import '../services/database.dart';
 import '../shared/constants.dart';
 import 'game_support/modalBottomSheet.dart';
@@ -92,11 +94,14 @@ class _SubstractionState extends State<Substraction> {
 
   @override
   Widget build(BuildContext context) {
-    Map<String, String>? gameRecord = widget.userRecord?.gameRecord;
-    int currentRecord =globalRecord= int.parse(gameRecord?[gameType] ?? "0");
+    final userRecord = context.watch<UserRecord?>();
+    Map<String, String>? gameRecord = userRecord?.gameRecord;
+    int currentRecord = globalRecord= int.parse(gameRecord?[gameType] ?? "0");
+    print(currentRecord);
     final DatabaseService service = DatabaseService(
       uid: widget.userRecord!.uid,
     );
+    if(userRecord==null){ return Loading();}
 
     return Scaffold(
       appBar: AppBar(
