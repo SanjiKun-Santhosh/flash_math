@@ -4,11 +4,11 @@ import 'package:flash_math/models/user_record.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../addition_algorithm/number_generator.dart';
+import '../game_algorithm/number_generator.dart';
 import '../screens/loading.dart';
 import '../services/database.dart';
 import '../shared/constants.dart';
-import 'game_support/modalBottomSheet.dart';
+import '../screens/custom_sheets.dart';
 
 class Substraction extends StatefulWidget {
   final UserRecord? userRecord;
@@ -28,8 +28,9 @@ class _SubstractionState extends State<Substraction> {
   Timer? _timer;
   bool _isButtonDisabled = false;
   final String gameType = GameTypes.substraction.name;
-  int globalRecord=0;
-  ModalBottomSheet alertDialog=ModalBottomSheet();
+  int globalRecord = 0;
+  CustomSheets alertDialog = CustomSheets();
+
   @override
   void initState() {
     super.initState();
@@ -55,8 +56,12 @@ class _SubstractionState extends State<Substraction> {
     _timer = Timer.periodic(oneHundredthOfASecond, (timer) {
       if (_progressValue >= 1.0) {
         timer.cancel();
-        alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal best is $globalRecord',gameMsg: "The Time is over!");
-
+        alertDialog.showCustomModalBottomSheet(
+          context,
+          outputText: GameOutputTexts.personalBest,
+          record: globalRecord,
+          gameMsg: GameOutputTexts.timeOverMsg,
+        );
       } else {
         setState(() {
           _progressValue += 0.01;
@@ -96,22 +101,24 @@ class _SubstractionState extends State<Substraction> {
   Widget build(BuildContext context) {
     final userRecord = context.watch<UserRecord?>();
     Map<String, String>? gameRecord = userRecord?.gameRecord;
-    int currentRecord = globalRecord= int.parse(gameRecord?[gameType] ?? "0");
-    print(currentRecord);
+    int currentRecord = globalRecord = int.parse(gameRecord?[gameType] ?? "0");
     final DatabaseService service = DatabaseService(
       uid: widget.userRecord!.uid,
     );
-    if(userRecord==null){ return Loading();}
+    if (userRecord == null) {
+      return Loading();
+    }
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         leading: BackButton(
           onPressed: () {
             Navigator.pop(context, "/home");
           },
         ),
       ),
-      backgroundColor: Colors.red[100],
+      backgroundColor: Colors.greenAccent[100],
       body: Container(
         padding: EdgeInsets.fromLTRB(30, 30, 30, 30),
         color: Colors.transparent,
@@ -144,8 +151,7 @@ class _SubstractionState extends State<Substraction> {
                         ),
                         SizedBox(height: 13),
                         SizedBox(
-                          child:
-                          Text(
+                          child: Text(
                             _total.toString(),
                             style: TextStyle(fontSize: 40),
                           ),
@@ -183,8 +189,12 @@ class _SubstractionState extends State<Substraction> {
                                   gameRecord!,
                                 );
                               }
-                              alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal best is $globalRecord',gameMsg: "The Time is over!");
-
+                              alertDialog.showCustomModalBottomSheet(
+                                context,
+                                outputText: GameOutputTexts.personalBest,
+                                record: globalRecord,
+                                gameMsg: GameOutputTexts.timeOverMsg,
+                              );
                             } else {
                               if (_firstValue - _secondValue != _total) {
                                 _getRandom();
@@ -201,15 +211,19 @@ class _SubstractionState extends State<Substraction> {
                                     gameRecord!,
                                   );
                                 }
-                                alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal best is $globalRecord',gameMsg: "The Answer is wrong!");
-
+                                alertDialog.showCustomModalBottomSheet(
+                                  context,
+                                  outputText: GameOutputTexts.personalBest,
+                                  record: globalRecord,
+                                  gameMsg: GameOutputTexts.answerWrongMsg,
+                                );
                               }
                             }
                           });
                         },
-                  icon: Icon(Icons.close, size: 50),
+                  icon: Icon(Icons.close, size: 60),
                 ),
-                SizedBox(width: 30),
+                SizedBox(width: 60),
                 IconButton(
                   onPressed: _isButtonDisabled
                       ? null
@@ -225,18 +239,21 @@ class _SubstractionState extends State<Substraction> {
                                   gameRecord!,
                                 );
                               }
-                              alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal best is $globalRecord',gameMsg: "The Time is over!");
-
+                              alertDialog.showCustomModalBottomSheet(
+                                context,
+                                outputText: GameOutputTexts.personalBest,
+                                record: globalRecord,
+                                gameMsg: GameOutputTexts.timeOverMsg,
+                              );
                             } else {
                               if (_firstValue - _secondValue == _total) {
                                 _getRandom();
                                 _record++;
                                 resetProgress();
-                                print("mushi");
                               } else {
                                 _isButtonDisabled = true;
                                 stopProgress();
-                                if(_record>currentRecord) {
+                                if (_record > currentRecord) {
                                   globalRecord = _record;
                                   updateRecordDatabase(
                                     _record,
@@ -244,42 +261,70 @@ class _SubstractionState extends State<Substraction> {
                                     gameRecord!,
                                   );
                                 }
-                                alertDialog.showCustomModalBottomSheet(context,outputText: 'Your personal best is $globalRecord',gameMsg: "The Answer is wrong!");
-
+                                alertDialog.showCustomModalBottomSheet(
+                                  context,
+                                  outputText: GameOutputTexts.personalBest,
+                                  record: globalRecord,
+                                  gameMsg: GameOutputTexts.answerWrongMsg,
+                                );
                               }
                             }
                           });
                         },
-                  icon: Icon(Icons.check_circle, size: 50),
+                  icon: Icon(Icons.check_circle, size: 60),
                 ),
               ],
             ),
-          Text(
-                    "Game on!",
-                    style: TextStyle(
-                      color: Colors.blueGrey,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+            Text(
+              "Game on!",
+              style: TextStyle(
+                color: Colors.blueGrey,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             SizedBox(height: 20),
             currentRecord >= _record
-                ? Text(
-                    "Your personal best is $currentRecord",
-                    style: TextStyle(
-                      color: Colors.blueGrey,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
+                ? Column(
+                    children: [
+                      Text(
+                        GameOutputTexts.personalBest,
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "$currentRecord",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   )
-                : Text(
-                    "Congratulations!! You new record is $_record",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
+                : Column(
+                    children: [
+                      Text(
+                        GameOutputTexts.congratsMsg,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "$_record",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
           ],
         ),

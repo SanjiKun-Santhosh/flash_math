@@ -9,7 +9,7 @@ class Auth {
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _isGoogleSignInInitialized = false;
   final String _serverCliendId =
-      "97362753510-2saoj0qnq98o6v20q31j0tjeb6dtop44.apps.googleusercontent.com";
+      "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com";
 
   Auth() {
     _initializeGoogleSignIn();
@@ -46,7 +46,7 @@ class Auth {
       User? user = credential.user;
       await DatabaseService(
         uid: user!.uid,
-      ).addUserData("John", {"addition": "0", "substraction": "0"});
+      ).addUserData("Player", {"addition": "0", "substraction": "0"});
 
       return _userFromFireBase(user);
     } catch (e) {
@@ -131,6 +131,10 @@ class Auth {
     final UserCredential userCredential = await _auth.signInWithCredential(
       credential,
     );
+    final User user=userCredential.user!;
+    await DatabaseService(
+      uid: user.uid,
+    ).addUserData("Player", {"addition": "0", "substraction": "0"});
     return userCredential;
   }
 

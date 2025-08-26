@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../screens/home.dart';
-import '../../screens/template.dart';
+import 'home.dart';
+import 'template.dart';
 
-class ModalBottomSheet {
-  void showCustomModalBottomSheet(context, {required String outputText,required String gameMsg}) {
+class CustomSheets {
+  void showCustomModalBottomSheet(BuildContext context, {required String outputText,required int record,required String gameMsg}) {
     showModalBottomSheet(
       elevation: 2.0,
       isDismissible: false,
@@ -62,6 +62,25 @@ class ModalBottomSheet {
                   style: TextStyle(fontSize: 20))
             ],
           ),
+        );
+      },
+    );
+  }
+  void showLoginErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text("Login Error"),
+          content: Text("Please check your email and password and try again."),
+          actions: <Widget>[
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
         );
       },
     );

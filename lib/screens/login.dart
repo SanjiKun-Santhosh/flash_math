@@ -1,4 +1,5 @@
 import 'package:flash_math/models/user.dart';
+import 'package:flash_math/screens/custom_sheets.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/services/auth.dart';
@@ -26,25 +27,6 @@ class _LoginState extends State<Login> {
   );
   bool _loading = false;
 
-  void _showLoginErrorDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: Text("Login Error"),
-          content: Text("Please check your email and password and try again."),
-          actions: <Widget>[
-            TextButton(
-              child: Text("OK"),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   void initState() {
@@ -160,7 +142,7 @@ class _LoginState extends State<Login> {
                             _loading = false;
                             if (result == null ||
                                 result.toString().contains("error")) {
-                              _showLoginErrorDialog();
+                              CustomSheets().showLoginErrorDialog(context);
                             } else {}
                           });
                         }
@@ -229,13 +211,13 @@ class _LoginState extends State<Login> {
                           iconSize: 40,
                         ),
                         IconButton(
-                          onPressed: () {
-                            dynamic result = _auth.signInWithGoogle();
-                            if (!mounted) return;
+                          onPressed: () async{
+                            dynamic result = await _auth.signInWithGoogle();
+                         if (!mounted) return;
                             setState(() {
                               if (result == null ||
                                   result.toString().contains("error")) {
-                                _showLoginErrorDialog();
+                                CustomSheets().showLoginErrorDialog(context);
                               } else {}
                             });
                           },

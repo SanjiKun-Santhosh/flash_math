@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore_platform_interface/src/get_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flash_math/models/storage_hive_model.dart';
 import 'package:flash_math/models/user_record.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/screens/profile/profile_support.dart';
@@ -11,6 +12,7 @@ import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/services/database.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -26,6 +28,7 @@ class UserProfile extends StatefulWidget {
 class _UserProfileState extends State<UserProfile> {
   final Auth _auth = Auth();
   final ImagePicker _imagePicker = ImagePicker();
+  final Box hiveStorage=Hive.box<UserHiveStorage>(userHiveBox);
   final _formKey = GlobalKey<FormState>();
   File? _imageFile;
   late Map<String, String> gameRecord;
@@ -44,6 +47,7 @@ final RecordBottomSheet recordBottomSheet=RecordBottomSheet();
   @override
   void initState() {
     super.initState();
+    _defaultImage();
   }
   @override
   void dispose() {
@@ -73,6 +77,16 @@ final RecordBottomSheet recordBottomSheet=RecordBottomSheet();
     final XFile? pickedImage = await _imagePicker.pickImage(source: source);
     if (pickedImage == null) return;
     setState(() => _imageFile = File(pickedImage.path));
+    await hiveStorage.put(_newName, UserHiveStorage(id: _newName, profilePicture: pickedImage.path));
+  }
+  Future<void> _defaultImage() async {
+    UserHiveStorage imageFromHive=await hiveStorage.get(_newName);
+
+    print(imageFromHive.profilePicture);
+      setState(() {
+        _imageFile=File(imageFromHive.profilePicture);
+      });
+
   }
 
   @override
@@ -107,7 +121,7 @@ final RecordBottomSheet recordBottomSheet=RecordBottomSheet();
                           foregroundColor: Colors.black,
                           radius: 90,
                           backgroundImage: (_imageFile == null)
-                              ? AssetImage(ImageGallery().profilePicture)
+                              ? AssetImage(ImageGallery.profilePicture)
                               : FileImage(_imageFile!) as ImageProvider,
                         ),
                       ),

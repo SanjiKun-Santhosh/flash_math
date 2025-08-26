@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../services/auth.dart';
 import '../shared/constants.dart';
+import 'custom_sheets.dart';
 import 'loading.dart';
 
 class Register extends StatefulWidget {
@@ -16,7 +17,7 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   bool _loading = false;
-  final Auth auth = Auth();
+  final Auth _auth = Auth();
   final formKey = GlobalKey<FormState>();
   late String _currentEmail;
   late String _currentPassword;
@@ -116,7 +117,7 @@ class _RegisterState extends State<Register> {
                           setState(() {
                             _loading = !_loading;
                           });
-                          dynamic result = await auth
+                          dynamic result = await _auth
                               .registerWithEmailAndPassword(
                                 _currentEmail,
                                 _currentPassword,
@@ -185,7 +186,16 @@ class _RegisterState extends State<Register> {
                           iconSize: 40,
                         ),
                         IconButton(
-                          onPressed: () {},
+                          onPressed: () async{
+                            dynamic result = await _auth.signInWithGoogle();
+                            if (!mounted) return;
+                            setState(() {
+                              if (result == null ||
+                                  result.toString().contains("error")) {
+                                CustomSheets().showLoginErrorDialog(context);
+                              } else {}
+                            });
+                          },
                           icon: FaIcon(FontAwesomeIcons.google),
                           iconSize: 40,
                         ),

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flash_math/addition_algorithm/number_generator.dart';
+import 'package:flash_math/game_algorithm/number_generator.dart';
 import 'package:flash_math/services/database.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../models/user_record.dart';
 import '../screens/loading.dart';
-import 'game_support/modalBottomSheet.dart';
+import '../screens/custom_sheets.dart';
 
 class Addition extends StatefulWidget {
   final UserRecord? userRecord;
@@ -29,7 +29,7 @@ class _AdditionState extends State<Addition> {
   bool _isButtonDisabled = false;
   final String gameType = GameTypes.addition.name;
   int globalRecord = 0;
-  ModalBottomSheet alertDialog = ModalBottomSheet();
+  CustomSheets alertDialog = CustomSheets();
 
   @override
   void initState() {
@@ -58,8 +58,9 @@ class _AdditionState extends State<Addition> {
         timer.cancel();
         alertDialog.showCustomModalBottomSheet(
           context,
-          outputText: 'Your personal record is $globalRecord',
-          gameMsg: "The Time is over!",
+          outputText: GameOutputTexts.personalBest,
+          record: globalRecord,
+          gameMsg: GameOutputTexts.timeOverMsg,
         );
       } else {
         setState(() {
@@ -106,9 +107,12 @@ class _AdditionState extends State<Addition> {
     final DatabaseService service = DatabaseService(
       uid: widget.userRecord!.uid,
     );
-if(userRecord==null){ return Loading();}
+    if (userRecord == null) {
+      return Loading();
+    }
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         leading: BackButton(
           onPressed: () {
             Navigator.pop(context, "/home");
@@ -189,9 +193,9 @@ if(userRecord==null){ return Loading();}
                               }
                               alertDialog.showCustomModalBottomSheet(
                                 context,
-                                outputText:
-                                    'Your personal record is $globalRecord',
-                                gameMsg: "The Time is over!",
+                                outputText: GameOutputTexts.personalBest,
+                                record: globalRecord,
+                                gameMsg: GameOutputTexts.timeOverMsg,
                               );
                             } else {
                               if (_firstValue + _secondValue != _total) {
@@ -211,17 +215,17 @@ if(userRecord==null){ return Loading();}
                                 }
                                 alertDialog.showCustomModalBottomSheet(
                                   context,
-                                  outputText:
-                                      'Your personal record is $globalRecord',
-                                  gameMsg: "The Answer is wrong!",
+                                  outputText: GameOutputTexts.personalBest,
+                                  record: globalRecord,
+                                  gameMsg: GameOutputTexts.answerWrongMsg,
                                 );
                               }
                             }
                           });
                         },
-                  icon: Icon(Icons.close, size: 50),
+                  icon: Icon(Icons.close, size: 60),
                 ),
-                SizedBox(width: 30),
+                SizedBox(width: 60),
                 IconButton(
                   onPressed: _isButtonDisabled
                       ? null
@@ -240,9 +244,9 @@ if(userRecord==null){ return Loading();}
                               }
                               alertDialog.showCustomModalBottomSheet(
                                 context,
-                                outputText:
-                                    'Your personal best is $globalRecord',
-                                gameMsg: "The Time is over!",
+                                outputText: GameOutputTexts.personalBest,
+                                record: globalRecord,
+                                gameMsg: GameOutputTexts.timeOverMsg,
                               );
                             } else {
                               if (_firstValue + _secondValue == _total) {
@@ -262,15 +266,15 @@ if(userRecord==null){ return Loading();}
                                 }
                                 alertDialog.showCustomModalBottomSheet(
                                   context,
-                                  outputText:
-                                      'Your personal best is $globalRecord',
-                                  gameMsg: "The Answer is wrong!",
+                                  outputText: GameOutputTexts.personalBest,
+                                  record: globalRecord,
+                                  gameMsg: GameOutputTexts.answerWrongMsg,
                                 );
                               }
                             }
                           });
                         },
-                  icon: Icon(Icons.check_circle, size: 50),
+                  icon: Icon(Icons.check_circle, size: 60),
                 ),
               ],
             ),
@@ -284,22 +288,46 @@ if(userRecord==null){ return Loading();}
             ),
             SizedBox(height: 20),
             currentRecord >= _record
-                ? Text(
-                    "Your personal best is $currentRecord",
-                    style: TextStyle(
-                      color: Colors.blueGrey,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
+                ? Column(
+                    children: [
+                      Text(
+                        GameOutputTexts.personalBest,
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "$currentRecord",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   )
-                : Text(
-                    "Congratulations!! You new best is $_record",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
+                : Column(
+                    children: [
+                      Text(
+                        GameOutputTexts.congratsMsg,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "$_record",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
           ],
         ),

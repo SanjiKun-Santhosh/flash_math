@@ -11,56 +11,65 @@ class ListOfGames extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: _gamesList
-          .map(
-            (val) => Card.outlined(
-              borderOnForeground: true,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                  bottomLeft: Radius.circular(30),
-                ),
-              ),
-              elevation: 5.0,
-              shadowColor: Colors.red,
-              surfaceTintColor: Colors.greenAccent,
-              color: Colors.lime[50],
-
-              clipBehavior: Clip.hardEdge,
-
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SwitchGames(gameChosen: val),
-                    ),
-                  );
-                },
-
-                splashColor: Colors.blue.withAlpha(50),
-                child: SizedBox(
-                  width: 300,
-                  height: 100,
-                  child: Center(
-                    child: Text(
-                      val,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: fontSize,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: CustomFontStyle().primaryFont,
+    return SingleChildScrollView(
+      child: Column(
+        children: _gamesList
+            .map(
+              (val) => Center(
+                child: Column(
+                  children: [
+                    Card.outlined(
+                      borderOnForeground: true,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                          bottomRight: Radius.circular(30),
+                          bottomLeft: Radius.circular(30),
+                        ),
+                      ),
+                      elevation: 5.0,
+                      shadowColor: Colors.red,
+                      surfaceTintColor: Colors.greenAccent,
+                      color: Colors.yellow[500],
+      
+                      clipBehavior: Clip.hardEdge,
+      
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SwitchGames(gameChosen: val),
+                            ),
+                          );
+                        },
+      
+                        splashColor: Colors.blue.withAlpha(50),
+                        child: SizedBox(
+                          width: 250,
+                          height: 75,
+                          child: Center(
+                            child: Text(
+                              val,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: fontSize,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: CustomFontStyle().primaryFont,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    SizedBox(height: 15,)
+                  ],
                 ),
               ),
-            ),
-          )
-          .toList(),
+            )
+            .toList(),
+      ),
     );
   }
 }

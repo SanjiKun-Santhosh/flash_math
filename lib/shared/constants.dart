@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 
 class ImageGallery {
-  final primaryBG = "assets/images/primary_bg.jpeg";
-  final secondaryBG = "assets/images/secondary_bg.png";
-  final profilePicture= "assets/images/default_profile_picture.jpg";
+  static const primaryBG = "assets/images/primary_bg.jpeg";
+  static const secondaryBG = "assets/images/secondary_bg.png";
+  static const profilePicture= "assets/images/default_profile_picture.jpg";
 }
 
 enum GameTypes { addition, substraction }
+class GameOutputTexts{
+  static const personalBest="Your personal best is ";
+  static const timeOverMsg="Sorry! The time is over!";
+  static const answerWrongMsg="Sorry! The answer is wrong!";
+  static const congratsMsg="Congratulations!! You new best is ";
+
+}
 
 class CustomFontStyle {
   final primaryFont = "Nunito";
   final secondaryFont = "Bitcount";
 }
+
+
 
 class ErrorMsg {
   final passwordErrorMsg =

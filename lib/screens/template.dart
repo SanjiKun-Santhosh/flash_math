@@ -19,7 +19,7 @@ class Template extends StatelessWidget {
       body: Stack(
         children: <Widget>[
           Image.asset(
-            ImageGallery().secondaryBG,
+            ImageGallery.secondaryBG,
             fit: BoxFit.fill,
             width: double.infinity,
             height: double.infinity,

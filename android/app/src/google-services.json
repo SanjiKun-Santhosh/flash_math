@@ -14,15 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "97362753510-61ob40bk5q82sqr91ugc405i4epnpt84.apps.googleusercontent.com",
+          "client_id": "97362753510-18b8geo8dd9ueeq207kikqbvdll3ac7p.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.visan.flash_math",
-            "certificate_hash": "119423fadec627fe6ec1cb7d73f465943e89a1a9"
+            "certificate_hash": "36c3b7cd810b354987b1c043a0236b4a1313db0e"
           }
         },
         {
-          "client_id": "97362753510-2saoj0qnq98o6v20q31j0tjeb6dtop44.apps.googleusercontent.com",
+          "client_id": "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -35,7 +35,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "97362753510-2saoj0qnq98o6v20q31j0tjeb6dtop44.apps.googleusercontent.com",
+              "client_id": "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

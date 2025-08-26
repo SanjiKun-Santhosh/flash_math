@@ -1,6 +1,5 @@
 import 'package:flash_math/screens/listOfGames.dart';
 import 'package:flash_math/screens/loading.dart';
-import 'package:flash_math/screens/profile/profile.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flutter/material.dart';
@@ -18,9 +17,10 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final Auth _auth = Auth();
   @override
   Widget build(BuildContext context) {
-    final Auth _auth = Auth();
+
     final userRecord = context.watch<UserRecord?>();
     if (userRecord != null) {
       return
@@ -28,8 +28,9 @@ class _HomeState extends State<Home> {
             appBar: AppBar(centerTitle: true,
               backgroundColor: Colors.transparent,
               actions: <Widget>[
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Row(mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
+                    SizedBox(width: 30,),
                     ElevatedButton.icon(onPressed: () {
                       setState(() {
                         Navigator.pushNamed(context, "/userProfile");
