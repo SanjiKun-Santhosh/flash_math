@@ -1,4 +1,5 @@
 import 'package:flash_math/games/addition.dart';
+import 'package:flash_math/games/levels.dart';
 import 'package:flash_math/games/substraction.dart';
 import 'package:flash_math/models/user_record.dart';
 import 'package:flash_math/screens/loading.dart';
@@ -24,8 +25,8 @@ class _SwitchGamesState extends State<SwitchGames> {
     if(userRecord!=null){
      switch (widget.gameChosen) {
       case "Addition":
-        print("object ${userRecord.gameRecord}");
-        return Addition(userRecord: userRecord);
+        return Levels(widget: Addition(userRecord: userRecord,));
+        //return Addition(userRecord: userRecord);
       case "Substraction":
         return Substraction(userRecord: userRecord);
       default:

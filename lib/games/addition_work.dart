@@ -3,22 +3,37 @@ import 'dart:async';
 import 'package:flash_math/game_algorithm/number_generator.dart';
 import 'package:flash_math/services/database.dart';
 import 'package:flash_math/shared/constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user_record.dart';
-import '../screens/loading.dart';
 import '../screens/custom_sheets.dart';
 
-class Addition extends StatefulWidget {
-  final UserRecord? userRecord;
+class AdditionWork extends StatefulWidget {
+  final String levelType;
+  final int min;
+  final int max;
+  final int timerSetting;
 
-  const Addition({super.key, required this.userRecord});
+  const AdditionWork({
+    super.key,
+    required this.levelType,
+    this.timerSetting = 30,
+    this.min = minimumForRandomGen,
+    this.max = maximumForRandomGen,
+  });
 
   @override
-  State<Addition> createState() => _AdditionState();
+  State<AdditionWork> createState() => _AdditionWorkState();
 }
 
-class _AdditionState extends State<Addition> {
+class _AdditionWorkState extends State<AdditionWork> {
+  late int _timerSpeed;
+  int _levelCounter = 0;
+  int _min = 0;
+  int _max = 0;
+  int _levelUpAt = 0;
+  late int _levelIndex;
   int _firstValue = 0;
   int _secondValue = 0;
   int _total = 0;
@@ -33,6 +48,16 @@ class _AdditionState extends State<Addition> {
   @override
   void initState() {
     super.initState();
+    if (widget.levelType == customLevel) {
+      _timerSpeed = widget.timerSetting;
+      _levelIndex=0;
+    } else {
+      _timerSpeed = int.parse(levelList[widget.levelType]!);
+      _levelIndex = levelListKeys.indexOf(widget.levelType)+1;
+    }
+    _levelUpAt = defaultLevelUpAt;
+    _min = widget.min;
+    _max = widget.max;
     Future.delayed(Duration(seconds: 0), () {
       setState(() {
         _getRandom();
@@ -42,7 +67,7 @@ class _AdditionState extends State<Addition> {
   }
 
   void _getRandom() async {
-    final generator = NumberGenerator(randomMin: 0, randomMax: 100);
+    final generator = NumberGenerator(randomMin: _min, randomMax: _max);
     await generator.random();
     await generator.randomAddTotal();
     _firstValue = generator.firstValue;
@@ -51,7 +76,7 @@ class _AdditionState extends State<Addition> {
   }
 
   void startProgress() {
-    const oneHundredthOfASecond = Duration(milliseconds: 30);
+    final oneHundredthOfASecond = Duration(milliseconds: _timerSpeed);
     _timer = Timer.periodic(oneHundredthOfASecond, (timer) {
       if (_progressValue >= 1.0) {
         timer.cancel();
@@ -81,6 +106,17 @@ class _AdditionState extends State<Addition> {
     });
   }
 
+  void _levelUp(int levelIndex) {
+    setState(() {
+      if(widget.levelType!=customLevel){
+        _timerSpeed = int.parse(levelList[levelListKeys[_levelIndex-1]]!);
+        _levelIndex++;
+        _levelCounter = 0;
+      }
+
+    });
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -102,13 +138,7 @@ class _AdditionState extends State<Addition> {
     final userRecord = context.watch<UserRecord?>();
     Map<String, String>? gameRecord = userRecord?.gameRecord;
     int currentRecord = globalRecord = int.parse(gameRecord?[gameType] ?? "0");
-    print(currentRecord);
-    final DatabaseService service = DatabaseService(
-      uid: widget.userRecord!.uid,
-    );
-    if (userRecord == null) {
-      return Loading();
-    }
+    final DatabaseService service = DatabaseService(uid: userRecord!.uid);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -198,6 +228,12 @@ class _AdditionState extends State<Addition> {
                               );
                             } else {
                               if (_firstValue + _secondValue != _total) {
+                                _levelCounter++;
+                                print(_levelCounter);
+                                if (_levelCounter > _levelUpAt &&
+                                    _levelIndex <= 5) {
+                                  _levelUp(_levelIndex);
+                                }
                                 _getRandom();
                                 _record++;
                                 resetProgress();
@@ -249,6 +285,12 @@ class _AdditionState extends State<Addition> {
                               );
                             } else {
                               if (_firstValue + _secondValue == _total) {
+                                _levelCounter++;
+                                print(_levelCounter);
+                                if (_levelCounter > _levelUpAt &&
+                                    _levelIndex <= 5) {
+                                  _levelUp(_levelIndex);
+                                }
                                 _getRandom();
                                 _record++;
                                 resetProgress();

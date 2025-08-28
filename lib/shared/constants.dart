@@ -49,3 +49,19 @@ class AppDecoration {
   );
 }
 const String userHiveBox="User Box";
+
+
+const Map<String,String> levelList = {
+"Level 1":"100",
+"Level 2" :"80",
+"Level 3" :"55",
+"Level 4":"30",
+"Level 5":"15",
+"Custom":""
+};
+final List levelListKeys = levelList.keys.toList();
+const String customLevel="Custom";
+const int defaultLevelUpAt=2;
+const int minimumForRandomGen=0;
+const int maximumForRandomGen=100;
+

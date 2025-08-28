@@ -1,13 +1,10 @@
 import 'package:flash_math/models/user.dart';
 import 'package:flash_math/screens/custom_sheets.dart';
 import 'package:flash_math/screens/loading.dart';
-import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
-
 class Login extends StatefulWidget {
   final Function() toggleView;
 

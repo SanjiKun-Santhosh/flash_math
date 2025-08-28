@@ -18,7 +18,7 @@ class CustomSheets {
                 title: Text(
                   gameMsg,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 40),
+                  style: TextStyle(fontSize: 38),
                 ),
                 content: Center(
                   child: const Text(
@@ -58,8 +58,13 @@ class CustomSheets {
 
                 ],
               ),
-              Text(outputText,textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20))
+              Column(
+                children: [
+                  Text(outputText,textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 20)),
+                  Text(record.toString(),style: TextStyle(fontSize: 35,fontWeight: FontWeight.bold),)
+                ],
+              )
             ],
           ),
         );

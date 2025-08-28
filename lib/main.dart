@@ -50,10 +50,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       routes: {
         '/home': (context) => const Template(child: Home()),
-        /*    '/addition':(context) {
-          final UserRecord? userRecord = ModalRoute.of(context)!.settings.arguments as UserRecord?;
-        return Addition(userRecord: userRecord);
-          },*/
         '/userProfile': (context) => const Template(child: UserProfile()),
       },
       home: const Wrapper(),

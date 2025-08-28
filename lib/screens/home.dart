@@ -1,3 +1,4 @@
+import 'package:flash_math/games/levels.dart';
 import 'package:flash_math/screens/listOfGames.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/screens/template.dart';
@@ -53,7 +54,8 @@ class _HomeState extends State<Home> {
               margin: EdgeInsets.all(40),
               child: Column(crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  ListOfGames(fontSize: 30),
+                 ListOfGames(fontSize: 30),
+                 // Levels()
                 ],
               ),
 
