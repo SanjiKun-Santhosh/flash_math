@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart';
+import '../shared/constants.dart';
 
 class SwitchGames extends StatefulWidget {
   final String gameChosen;
@@ -25,10 +26,9 @@ class _SwitchGamesState extends State<SwitchGames> {
     if(userRecord!=null){
      switch (widget.gameChosen) {
       case "Addition":
-        return Levels(widget: Addition(userRecord: userRecord,));
-        //return Addition(userRecord: userRecord);
+        return Levels(gameType: widget.gameChosen);
       case "Substraction":
-        return Substraction(userRecord: userRecord);
+        return Levels(gameType: widget.gameChosen);
       default:
         return const Template(child: Loading());
     }}

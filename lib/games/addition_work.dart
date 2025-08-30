@@ -1,9 +1,7 @@
 import 'dart:async';
-
 import 'package:flash_math/game_algorithm/number_generator.dart';
 import 'package:flash_math/services/database.dart';
 import 'package:flash_math/shared/constants.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user_record.dart';
@@ -41,28 +39,46 @@ class _AdditionWorkState extends State<AdditionWork> {
   double _progressValue = 0.0;
   Timer? _timer;
   bool _isButtonDisabled = false;
-  final String gameType = GameTypes.addition.name;
+  final String _gameType = GameTypes.addition.name;
+  int currentRecord = 0;
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();
+  late final DatabaseService _service;
+  late final Map<String, String>? _gameRecord;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupGame();
+    });
+  }
+
+  void _setupGame() {
+    final userRecord = Provider.of<UserRecord?>(context, listen: false);
+    if (userRecord == null) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+    _service = DatabaseService(uid: userRecord.uid);
     if (widget.levelType == customLevel) {
       _timerSpeed = widget.timerSetting;
-      _levelIndex=0;
+      _levelIndex = 0;
+      _gameRecord = {};
     } else {
       _timerSpeed = int.parse(levelList[widget.levelType]!);
-      _levelIndex = levelListKeys.indexOf(widget.levelType)+1;
+      _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
+      _gameRecord = userRecord.gameRecord;
     }
+    currentRecord = globalRecord = int.parse(_gameRecord?[_gameType] ?? "0");
     _levelUpAt = defaultLevelUpAt;
     _min = widget.min;
     _max = widget.max;
-    Future.delayed(Duration(seconds: 0), () {
-      setState(() {
-        _getRandom();
-      });
+    setState(() {
+      _isInitialized = true;
     });
+    _getRandom();
     startProgress();
   }
 
@@ -70,26 +86,27 @@ class _AdditionWorkState extends State<AdditionWork> {
     final generator = NumberGenerator(randomMin: _min, randomMax: _max);
     await generator.random();
     await generator.randomAddTotal();
-    _firstValue = generator.firstValue;
-    _secondValue = generator.secondValue;
-    _total = generator.total;
+    if (mounted) {
+      setState(() {
+        _firstValue = generator.firstValue;
+        _secondValue = generator.secondValue;
+        _total = generator.total;
+      });
+    }
   }
 
   void startProgress() {
     final oneHundredthOfASecond = Duration(milliseconds: _timerSpeed);
     _timer = Timer.periodic(oneHundredthOfASecond, (timer) {
       if (_progressValue >= 1.0) {
-        timer.cancel();
-        alertDialog.showCustomModalBottomSheet(
-          context,
-          outputText: GameOutputTexts.personalBest,
-          record: globalRecord,
-          gameMsg: GameOutputTexts.timeOverMsg,
-        );
+        if (mounted) timer.cancel();
+        _handleTimeOver();
       } else {
-        setState(() {
-          _progressValue += 0.01;
-        });
+        if (mounted) {
+          setState(() {
+            _progressValue += 0.01;
+          });
+        }
       }
     });
   }
@@ -108,13 +125,66 @@ class _AdditionWorkState extends State<AdditionWork> {
 
   void _levelUp(int levelIndex) {
     setState(() {
-      if(widget.levelType!=customLevel){
-        _timerSpeed = int.parse(levelList[levelListKeys[_levelIndex-1]]!);
-        _levelIndex++;
-        _levelCounter = 0;
+      if (widget.levelType != customLevel) {
+        if (mounted) {
+          _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
+          _levelIndex++;
+          _levelCounter = 0;
+        }
       }
-
     });
+  }
+
+  void _handleTimeOver() {
+    if (mounted) {
+      setState(() {
+        _isButtonDisabled = true;
+        stopProgress();
+        if (_record > currentRecord) {
+          globalRecord = _record;
+          updateRecordDatabase(_record, _service, _gameRecord!);
+        }
+        alertDialog.showCustomModalBottomSheet(
+          context,
+          outputText: GameOutputTexts.personalBest,
+          record: globalRecord,
+          gameMsg: GameOutputTexts.timeOverMsg,
+        );
+      });
+    }
+  }
+
+  void _handleNewHighScore() {
+    if (mounted) {
+      setState(() {
+        _levelCounter++;
+        if (_levelCounter > _levelUpAt && _levelIndex <= 5) {
+          _levelUp(_levelIndex);
+        }
+        _getRandom();
+        _record++;
+        resetProgress();
+      });
+    }
+  }
+
+  void _handleNotHighScore() {
+    if (mounted) {
+      setState(() {
+        _isButtonDisabled = true;
+        stopProgress();
+        if (_record > currentRecord) {
+          globalRecord = _record;
+          updateRecordDatabase(_record, _service, _gameRecord!);
+        }
+        alertDialog.showCustomModalBottomSheet(
+          context,
+          outputText: GameOutputTexts.personalBest,
+          record: globalRecord,
+          gameMsg: GameOutputTexts.answerWrongMsg,
+        );
+      });
+    }
   }
 
   @override
@@ -128,17 +198,17 @@ class _AdditionWorkState extends State<AdditionWork> {
     DatabaseService service,
     Map<String, String> gameRecord,
   ) async {
-    gameRecord.update(gameType, (record) => currentRecord.toString());
-    await service.updateUserRecord(gameRecord);
+    if (widget.levelType != customLevel) {
+      gameRecord.update(_gameType, (record) => currentRecord.toString());
+      await service.updateUserRecord(gameRecord);
+    }
   }
 
-  ///use provider instead of assigning Database Service.
   @override
   Widget build(BuildContext context) {
-    final userRecord = context.watch<UserRecord?>();
-    Map<String, String>? gameRecord = userRecord?.gameRecord;
-    int currentRecord = globalRecord = int.parse(gameRecord?[gameType] ?? "0");
-    final DatabaseService service = DatabaseService(uid: userRecord!.uid);
+    if (!_isInitialized) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -208,54 +278,15 @@ class _AdditionWorkState extends State<AdditionWork> {
                   onPressed: _isButtonDisabled
                       ? null
                       : () {
-                          setState(() {
-                            if (_progressValue >= 1.0) {
-                              _isButtonDisabled = true;
-                              dispose();
-                              if (_record > currentRecord) {
-                                globalRecord = _record;
-                                updateRecordDatabase(
-                                  _record,
-                                  service,
-                                  gameRecord!,
-                                );
-                              }
-                              alertDialog.showCustomModalBottomSheet(
-                                context,
-                                outputText: GameOutputTexts.personalBest,
-                                record: globalRecord,
-                                gameMsg: GameOutputTexts.timeOverMsg,
-                              );
+                          if (_progressValue >= 1.0) {
+                            _handleTimeOver();
+                          } else {
+                            if (_firstValue + _secondValue != _total) {
+                              _handleNewHighScore();
                             } else {
-                              if (_firstValue + _secondValue != _total) {
-                                _levelCounter++;
-                                if (_levelCounter > _levelUpAt &&
-                                    _levelIndex <= 5) {
-                                  _levelUp(_levelIndex);
-                                }
-                                _getRandom();
-                                _record++;
-                                resetProgress();
-                              } else {
-                                _isButtonDisabled = true;
-                                stopProgress();
-                                if (_record > currentRecord) {
-                                  globalRecord = _record;
-                                  updateRecordDatabase(
-                                    _record,
-                                    service,
-                                    gameRecord!,
-                                  );
-                                }
-                                alertDialog.showCustomModalBottomSheet(
-                                  context,
-                                  outputText: GameOutputTexts.personalBest,
-                                  record: globalRecord,
-                                  gameMsg: GameOutputTexts.answerWrongMsg,
-                                );
-                              }
+                              _handleNotHighScore();
                             }
-                          });
+                          }
                         },
                   icon: Icon(Icons.close, size: 60),
                 ),
@@ -264,55 +295,15 @@ class _AdditionWorkState extends State<AdditionWork> {
                   onPressed: _isButtonDisabled
                       ? null
                       : () {
-                          setState(() {
-                            if (_progressValue >= 1.0) {
-                              _isButtonDisabled = true;
-                              dispose();
-                              if (_record > currentRecord) {
-                                globalRecord = _record;
-                                updateRecordDatabase(
-                                  _record,
-                                  service,
-                                  gameRecord!,
-                                );
-                              }
-                              alertDialog.showCustomModalBottomSheet(
-                                context,
-                                outputText: GameOutputTexts.personalBest,
-                                record: globalRecord,
-                                gameMsg: GameOutputTexts.timeOverMsg,
-                              );
+                          if (_progressValue >= 1.0) {
+                            _handleTimeOver();
+                          } else {
+                            if (_firstValue + _secondValue == _total) {
+                              _handleNewHighScore();
                             } else {
-                              if (_firstValue + _secondValue == _total) {
-                                _levelCounter++;
-                                print(_levelCounter);
-                                if (_levelCounter > _levelUpAt &&
-                                    _levelIndex <= 5) {
-                                  _levelUp(_levelIndex);
-                                }
-                                _getRandom();
-                                _record++;
-                                resetProgress();
-                              } else {
-                                _isButtonDisabled = true;
-                                stopProgress();
-                                if (_record > currentRecord) {
-                                  globalRecord = _record;
-                                  updateRecordDatabase(
-                                    _record,
-                                    service,
-                                    gameRecord!,
-                                  );
-                                }
-                                alertDialog.showCustomModalBottomSheet(
-                                  context,
-                                  outputText: GameOutputTexts.personalBest,
-                                  record: globalRecord,
-                                  gameMsg: GameOutputTexts.answerWrongMsg,
-                                );
-                              }
+                              _handleNotHighScore();
                             }
-                          });
+                          }
                         },
                   icon: Icon(Icons.check_circle, size: 60),
                 ),

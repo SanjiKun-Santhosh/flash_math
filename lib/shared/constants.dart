@@ -1,4 +1,7 @@
+import 'package:flash_math/games/substraction.dart';
 import 'package:flutter/material.dart';
+
+import '../games/addition.dart';
 
 class ImageGallery {
   static const primaryBG = "assets/images/primary_bg.jpeg";
@@ -63,6 +66,9 @@ final List levelListKeys = levelList.keys.toList();
 const String customLevel="Custom";
 const int defaultTimerSetting=30;
 const int defaultLevelUpAt=2;
+const int maximumLevelUpAt=10000;
 const int minimumForRandomGen=0;
 const int maximumForRandomGen=100;
+
+
 

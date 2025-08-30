@@ -11,61 +11,104 @@ import '../shared/constants.dart';
 import '../screens/custom_sheets.dart';
 
 class Substraction extends StatefulWidget {
-  final UserRecord? userRecord;
+  final String levelType;
+  final int min;
+  final int max;
+  final int timerSetting;
 
-  const Substraction({super.key, required this.userRecord});
+  const Substraction({ super.key,
+    this.levelType = customLevel,
+    this.timerSetting = defaultTimerSetting,
+    this.min = minimumForRandomGen,
+    this.max = maximumForRandomGen,});
 
   @override
   State<Substraction> createState() => _SubstractionState();
 }
 
 class _SubstractionState extends State<Substraction> {
+  late int _timerSpeed;
+  late int _levelIndex;
+  int _levelUpAt = 0;
+  int _levelCounter = 0;
+  int _min = 0;
+  int _max = 0;
   int _firstValue = 0;
   int _secondValue = 0;
   int _total = 0;
-  int _record = 1;
+  int _record = 0;
   double _progressValue = 0.0;
   Timer? _timer;
   bool _isButtonDisabled = false;
-  final String gameType = GameTypes.substraction.name;
+  final String _gameType = GameTypes.substraction.name;
+  int currentRecord = 0;
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();
+  late final DatabaseService _service;
+  late final Map<String, String>? _gameRecord;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 0), () {
-      setState(() {
-        _getRandom();
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupGame();
     });
+  }
+
+  void _setupGame() {
+    final userRecord = Provider.of<UserRecord?>(context, listen: false);
+    if (userRecord == null) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+    _service = DatabaseService(uid: userRecord.uid);
+    if (widget.levelType == customLevel) {
+      _timerSpeed = widget.timerSetting;
+      _levelIndex = 0;
+      _gameRecord = {};
+    } else {
+      _timerSpeed = int.parse(levelList[widget.levelType]!);
+      _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
+      _gameRecord = userRecord.gameRecord;
+    }
+    currentRecord = globalRecord = int.parse(_gameRecord?[_gameType] ?? "0");
+    _levelUpAt = defaultLevelUpAt;
+    _min = widget.min;
+    _max = widget.max;
+    setState(() {
+      _isInitialized = true;
+    });
+    _getRandom();
     startProgress();
   }
 
   void _getRandom() async {
-    final generator = NumberGenerator(randomMin: 0, randomMax: 100);
+    final generator = NumberGenerator(randomMin: _min, randomMax: _max);
     await generator.randomForSub();
     await generator.randomSubTotal();
-    _firstValue = generator.firstValue;
-    _secondValue = generator.secondValue;
-    _total = generator.total;
+    if (mounted) {
+      setState(() {
+        _firstValue = generator.firstValue;
+        _secondValue = generator.secondValue;
+        _total = generator.total;
+      });
+    }
   }
 
+
   void startProgress() {
-    const oneHundredthOfASecond = Duration(milliseconds: 30);
+    final oneHundredthOfASecond = Duration(milliseconds: _timerSpeed);
     _timer = Timer.periodic(oneHundredthOfASecond, (timer) {
       if (_progressValue >= 1.0) {
-        timer.cancel();
-        alertDialog.showCustomModalBottomSheet(
-          context,
-          outputText: GameOutputTexts.personalBest,
-          record: globalRecord,
-          gameMsg: GameOutputTexts.timeOverMsg,
-        );
+        if (mounted) timer.cancel();
+        _handleTimeOver();
       } else {
-        setState(() {
-          _progressValue += 0.01;
-        });
+        if (mounted) {
+          setState(() {
+            _progressValue += 0.01;
+          });
+        }
       }
     });
   }
@@ -82,33 +125,92 @@ class _SubstractionState extends State<Substraction> {
     });
   }
 
+
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
 
-  void updateRecordDatabase(
-    int currentRecord,
-    DatabaseService service,
-    Map<String, String> gameRecord,
-  ) async {
-    gameRecord.update(gameType, (record) => currentRecord.toString());
-    await service.updateUserRecord(gameRecord);
+
+  void _levelUp(int levelIndex) {
+    setState(() {
+      if (widget.levelType != customLevel) {
+        if (mounted) {
+          _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
+          _levelIndex++;
+          _levelCounter = 0;
+        }
+      }
+    });
+  }
+
+  void _handleTimeOver() {
+    if (mounted) {
+      setState(() {
+        _isButtonDisabled = true;
+        stopProgress();
+        if (_record > currentRecord) {
+          globalRecord = _record;
+          updateRecordDatabase(_record, _service, _gameRecord!);
+        }
+        alertDialog.showCustomModalBottomSheet(
+          context,
+          outputText: GameOutputTexts.personalBest,
+          record: globalRecord,
+          gameMsg: GameOutputTexts.timeOverMsg,
+        );
+      });
+    }
+  }
+
+  void _handleNewHighScore() {
+    if (mounted) {
+      setState(() {
+        _levelCounter++;
+        if (_levelCounter > _levelUpAt && _levelIndex <= 5) {
+          _levelUp(_levelIndex);
+        }
+        _getRandom();
+        _record++;
+        resetProgress();
+      });
+    }
+  }
+
+  void _handleNotHighScore() {
+    if (mounted) {
+      setState(() {
+        _isButtonDisabled = true;
+        stopProgress();
+        if (_record > currentRecord) {
+          globalRecord = _record;
+          updateRecordDatabase(_record, _service, _gameRecord!);
+        }
+        alertDialog.showCustomModalBottomSheet(
+          context,
+          outputText: GameOutputTexts.personalBest,
+          record: globalRecord,
+          gameMsg: GameOutputTexts.answerWrongMsg,
+        );
+      });
+    }
+  }
+
+  void updateRecordDatabase(int currentRecord,
+      DatabaseService service,
+      Map<String, String> gameRecord,) async {
+    if (widget.levelType != customLevel) {
+      gameRecord.update(_gameType, (record) => currentRecord.toString());
+      await service.updateUserRecord(gameRecord);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final userRecord = context.watch<UserRecord?>();
-    Map<String, String>? gameRecord = userRecord?.gameRecord;
-    int currentRecord = globalRecord = int.parse(gameRecord?[gameType] ?? "0");
-    final DatabaseService service = DatabaseService(
-      uid: widget.userRecord!.uid,
-    );
-    if (userRecord == null) {
-      return Loading();
+    if (!_isInitialized) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -178,49 +280,18 @@ class _SubstractionState extends State<Substraction> {
                   onPressed: _isButtonDisabled
                       ? null
                       : () {
-                          setState(() {
-                            if (_progressValue >= 1.0) {
-                              _isButtonDisabled = true;
-                              dispose();
-                              if (_record > currentRecord) {
-                                updateRecordDatabase(
-                                  _record,
-                                  service,
-                                  gameRecord!,
-                                );
-                              }
-                              alertDialog.showCustomModalBottomSheet(
-                                context,
-                                outputText: GameOutputTexts.personalBest,
-                                record: globalRecord,
-                                gameMsg: GameOutputTexts.timeOverMsg,
-                              );
-                            } else {
-                              if (_firstValue - _secondValue != _total) {
-                                _getRandom();
-                                _record++;
-                                resetProgress();
-                                print("mushi");
-                              } else {
-                                _isButtonDisabled = true;
-                                stopProgress();
-                                if (_record > currentRecord) {
-                                  updateRecordDatabase(
-                                    _record,
-                                    service,
-                                    gameRecord!,
-                                  );
-                                }
-                                alertDialog.showCustomModalBottomSheet(
-                                  context,
-                                  outputText: GameOutputTexts.personalBest,
-                                  record: globalRecord,
-                                  gameMsg: GameOutputTexts.answerWrongMsg,
-                                );
-                              }
-                            }
-                          });
-                        },
+                    setState(() {
+                      if (_progressValue >= 1.0) {
+                        _handleTimeOver();
+                      } else {
+                        if (_firstValue - _secondValue != _total) {
+                          _handleNewHighScore();
+                        } else {
+                          _handleNotHighScore();
+                        }
+                      }
+                    });
+                  },
                   icon: Icon(Icons.close, size: 60),
                 ),
                 SizedBox(width: 60),
@@ -228,49 +299,18 @@ class _SubstractionState extends State<Substraction> {
                   onPressed: _isButtonDisabled
                       ? null
                       : () {
-                          setState(() {
-                            if (_progressValue >= 1.0) {
-                              _isButtonDisabled = true;
-                              dispose();
-                              if (_record > currentRecord) {
-                                updateRecordDatabase(
-                                  _record,
-                                  service,
-                                  gameRecord!,
-                                );
-                              }
-                              alertDialog.showCustomModalBottomSheet(
-                                context,
-                                outputText: GameOutputTexts.personalBest,
-                                record: globalRecord,
-                                gameMsg: GameOutputTexts.timeOverMsg,
-                              );
-                            } else {
-                              if (_firstValue - _secondValue == _total) {
-                                _getRandom();
-                                _record++;
-                                resetProgress();
-                              } else {
-                                _isButtonDisabled = true;
-                                stopProgress();
-                                if (_record > currentRecord) {
-                                  globalRecord = _record;
-                                  updateRecordDatabase(
-                                    _record,
-                                    service,
-                                    gameRecord!,
-                                  );
-                                }
-                                alertDialog.showCustomModalBottomSheet(
-                                  context,
-                                  outputText: GameOutputTexts.personalBest,
-                                  record: globalRecord,
-                                  gameMsg: GameOutputTexts.answerWrongMsg,
-                                );
-                              }
-                            }
-                          });
-                        },
+                    setState(() {
+                      if (_progressValue >= 1.0) {
+                        _handleTimeOver();
+                      } else {
+                        if (_firstValue - _secondValue == _total) {
+                          _handleNewHighScore();
+                        } else {
+                          _handleNotHighScore();
+                        }
+                      }
+                    });
+                  },
                   icon: Icon(Icons.check_circle, size: 60),
                 ),
               ],
@@ -286,46 +326,46 @@ class _SubstractionState extends State<Substraction> {
             SizedBox(height: 20),
             currentRecord >= _record
                 ? Column(
-                    children: [
-                      Text(
-                        GameOutputTexts.personalBest,
-                        style: TextStyle(
-                          color: Colors.blueGrey,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        "$currentRecord",
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      Text(
-                        GameOutputTexts.congratsMsg,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        "$_record",
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+              children: [
+                Text(
+                  GameOutputTexts.personalBest,
+                  style: TextStyle(
+                    color: Colors.blueGrey,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  "$currentRecord",
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            )
+                : Column(
+              children: [
+                Text(
+                  GameOutputTexts.congratsMsg,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  "$_record",
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

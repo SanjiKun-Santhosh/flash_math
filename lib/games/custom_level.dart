@@ -1,25 +1,45 @@
+import 'package:flash_math/games/substraction.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
-
-import 'addition_work.dart';
+import 'addition.dart';
 
 class CustomLevel extends StatefulWidget {
-  final String customLevel;
+  final String gameType;
 
-  const CustomLevel({super.key, required this.customLevel});
+  const CustomLevel({super.key, required this.gameType});
 
   @override
   State<CustomLevel> createState() => _CustomLevelState();
 }
 
 class _CustomLevelState extends State<CustomLevel> {
-  double _valueSlide = 1;
+  double _timerSlide = 1;
   int _timer = 0;
   int _min = 0;
   int _max = 100;
-  bool _boxChecked = false;
   final _formKey = GlobalKey<FormState>();
+
+  Widget _selectGameWidget() {
+    if (widget.gameType == "Addition") {
+      return Addition(
+        levelType: customLevel,
+        min: _min,
+        max: _max,
+        timerSetting: _timer,
+      );
+    } else if (widget.gameType == "Substraction") {
+      return Substraction(
+        levelType: customLevel,
+        min: _min,
+        max: _max,
+        timerSetting: _timer,
+      );
+    }
+    return const Scaffold(
+      body: Center(child: Text("Error: Unknown Game Type")),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,12 +67,12 @@ class _CustomLevelState extends State<CustomLevel> {
               ),
               SizedBox(height: 30),
               Slider(
-                value: _valueSlide,
-                activeColor: Colors.red[_valueSlide.round() * 100],
-                inactiveColor: Colors.brown[_valueSlide.round() * 100],
+                value: _timerSlide,
+                activeColor: Colors.red[_timerSlide.round() * 100],
+                inactiveColor: Colors.brown[_timerSlide.round() * 100],
                 onChanged: (val) {
                   setState(() {
-                    _valueSlide = val;
+                    _timerSlide = val;
                     _timer = (val).round() * 10;
                   });
                 },
@@ -61,7 +81,7 @@ class _CustomLevelState extends State<CustomLevel> {
                 divisions: 10,
               ),
               Text(
-                "${_valueSlide.round().toString()} seconds",
+                "${_timerSlide.round().toString()} seconds",
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.w600,
@@ -94,44 +114,16 @@ class _CustomLevelState extends State<CustomLevel> {
                   });
                 },
               ),
-              SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Do you want to play infinite time?",
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  Checkbox(
-                    value: _boxChecked,
-                    onChanged: (val) {
-                      setState(() {
-                        _boxChecked = !_boxChecked;
-                        if (_boxChecked) {}
-                      });
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-
-              SizedBox(height: 30),
+              SizedBox(height: 60),
 
               FilledButton.icon(
                 onPressed: () {
-                  setState(() {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (BuildContext e) => AdditionWork(
-                          levelType: widget.customLevel,
-                          min: _min,
-                          max: _max,
-                          timerSetting: _timer,
-                        ),
-                      ),
-                    );
-                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext e) => _selectGameWidget(),
+                    ),
+                  );
                 },
                 label: Text("Play"),
                 icon: Icon(Icons.games),
