@@ -61,6 +61,7 @@ const Map<String,String> levelList = {
 };
 final List levelListKeys = levelList.keys.toList();
 const String customLevel="Custom";
+const int defaultTimerSetting=30;
 const int defaultLevelUpAt=2;
 const int minimumForRandomGen=0;
 const int maximumForRandomGen=100;

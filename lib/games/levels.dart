@@ -22,10 +22,6 @@ class _LevelsState extends State<Levels> {
         padding: EdgeInsets.symmetric(vertical: 20,horizontal: 20),
         child: Container(
           width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(50),
-            color: Colors.grey[100],
-          ),
           padding: EdgeInsets.all(25),
           margin: EdgeInsets.all(15),
           child: Column(
@@ -44,7 +40,7 @@ class _LevelsState extends State<Levels> {
                     elevation: 5.0,
                     shadowColor: Colors.red,
                     surfaceTintColor: Colors.greenAccent,
-                    color: Colors.tealAccent[100],
+                    color: Color(0xFFfb6f92),
                     clipBehavior: Clip.hardEdge,
                     child: TextButton(
                       onPressed: () {
@@ -68,7 +64,12 @@ class _LevelsState extends State<Levels> {
                           }
                         });
                       },
-                      child: Text(level, style: TextStyle(fontSize: 25)),
+                      style: ButtonStyle(
+                        fixedSize:WidgetStateProperty.all<Size>(Size.fromWidth(150))
+                      ),
+                      child: Text(level, style: TextStyle(fontSize: 25,
+                      fontFamily: CustomFontStyle().primaryFont,
+                      fontWeight: FontWeight.bold)),
                     ),
                   ),
                   SizedBox(height: 20),

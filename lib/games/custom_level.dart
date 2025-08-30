@@ -25,11 +25,12 @@ class _CustomLevelState extends State<CustomLevel> {
   Widget build(BuildContext context) {
     return Template(
       child: Scaffold(
+        backgroundColor: Colors.transparent,
         body: Container(
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: Colors.grey[200],
+            color: Colors.grey[100],
           ),
           padding: EdgeInsets.all(25),
           margin: EdgeInsets.all(15),
@@ -71,7 +72,7 @@ class _CustomLevelState extends State<CustomLevel> {
               TextField(
                 textAlign: TextAlign.center,
                 decoration: AppDecoration().textDecoration.copyWith(
-                  hintText: "Enter min X value",
+                  hintText: "Lowest number",
                 ),
                 style: TextStyle(fontSize: 25),
                 onChanged: (val) {
@@ -84,7 +85,7 @@ class _CustomLevelState extends State<CustomLevel> {
               TextField(
                 textAlign: TextAlign.center,
                 decoration: AppDecoration().textDecoration.copyWith(
-                  hintText: "Enter max Y value",
+                  hintText: "Highest number",
                 ),
                 style: TextStyle(fontSize: 25),
                 onChanged: (val) {

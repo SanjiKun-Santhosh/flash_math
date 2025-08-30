@@ -18,7 +18,7 @@ class AdditionWork extends StatefulWidget {
   const AdditionWork({
     super.key,
     required this.levelType,
-    this.timerSetting = 30,
+    this.timerSetting = defaultTimerSetting,
     this.min = minimumForRandomGen,
     this.max = maximumForRandomGen,
   });
@@ -29,11 +29,11 @@ class AdditionWork extends StatefulWidget {
 
 class _AdditionWorkState extends State<AdditionWork> {
   late int _timerSpeed;
+  late int _levelIndex;
+  int _levelUpAt = 0;
   int _levelCounter = 0;
   int _min = 0;
   int _max = 0;
-  int _levelUpAt = 0;
-  late int _levelIndex;
   int _firstValue = 0;
   int _secondValue = 0;
   int _total = 0;
@@ -229,7 +229,6 @@ class _AdditionWorkState extends State<AdditionWork> {
                             } else {
                               if (_firstValue + _secondValue != _total) {
                                 _levelCounter++;
-                                print(_levelCounter);
                                 if (_levelCounter > _levelUpAt &&
                                     _levelIndex <= 5) {
                                   _levelUp(_levelIndex);
