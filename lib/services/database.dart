@@ -17,11 +17,11 @@ class DatabaseService {
   }
 
   Future updateUserRecord(Map<String, String> gameRecord) async {
-    return await mathCollections.doc(uid).set({"gameRecord": gameRecord});
+    return await mathCollections.doc(uid).update({"gameRecord": gameRecord});
   }
 
   Future updateName(String name) async {
-    return await mathCollections.doc(uid).set({"name": name});
+    return await mathCollections.doc(uid).update({"name": name});
   }
 
   Future <UserRecord?> userDataForProfile() async {

@@ -1,31 +1,34 @@
 import 'dart:async';
-import 'package:flash_math/game_algorithm/number_generator.dart';
-import 'package:flash_math/services/database.dart';
-import 'package:flash_math/shared/constants.dart';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../game_algorithm/number_generator.dart';
 import '../models/user_record.dart';
 import '../screens/custom_sheets.dart';
+import '../services/database.dart';
+import '../shared/constants.dart';
 
-class AdditionWork extends StatefulWidget {
+class Flash extends StatefulWidget {
   final String levelType;
   final int min;
   final int max;
   final int timerSetting;
 
-  const AdditionWork({
+  const Flash({
     super.key,
-    required this.levelType,
+    this.levelType = customLevel,
     this.timerSetting = defaultTimerSetting,
     this.min = minimumForRandomGen,
     this.max = maximumForRandomGen,
   });
 
   @override
-  State<AdditionWork> createState() => _AdditionWorkState();
+  State<Flash> createState() => _FlashState();
 }
 
-class _AdditionWorkState extends State<AdditionWork> {
+class _FlashState extends State<Flash> {
   late int _timerSpeed;
   late int _levelIndex;
   int _levelUpAt = 0;
@@ -39,13 +42,16 @@ class _AdditionWorkState extends State<AdditionWork> {
   double _progressValue = 0.0;
   Timer? _timer;
   bool _isButtonDisabled = false;
-  final String _gameType = GameTypes.addition.name;
+  final String _gameType = GameTypes.complex.name;
   int currentRecord = 0;
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();
   late final DatabaseService _service;
   late final Map<String, String>? _gameRecord;
   bool _isInitialized = false;
+  final Random _rand = Random();
+  GameTypes _currentOperation=GameTypes.addition;
+  bool _isButtonChanged=false;
 
   @override
   void initState() {
@@ -78,14 +84,19 @@ class _AdditionWorkState extends State<AdditionWork> {
     setState(() {
       _isInitialized = true;
     });
-    _getRandom();
+    _getRandom(GameTypes.addition);
     startProgress();
   }
 
-  void _getRandom() async {
+  void _getRandom(GameTypes gameType) async {
     final generator = NumberGenerator(randomMin: _min, randomMax: _max);
-    await generator.random();
-    await generator.randomAddTotal();
+    if (gameType == GameTypes.addition) {
+      await generator.random();
+      await generator.randomAddTotal();
+    } else if (gameType == GameTypes.substraction) {
+      await generator.randomForSub();
+      await generator.randomSubTotal();
+    }
     if (mounted) {
       setState(() {
         _firstValue = generator.firstValue;
@@ -154,20 +165,34 @@ class _AdditionWorkState extends State<AdditionWork> {
     }
   }
 
-  void _handleNewHighScore() {
-    if (mounted) {
+  void _submitAnswer(bool userThinksEquationIsCorrect) {
+    if (_progressValue >= 1.0) {
+      _handleTimeOver();
+      return;
+    }
+    final bool isEquationCorrect =
+    _currentOperation == GameTypes.addition
+        ? (_firstValue + _secondValue == _total)
+        : (_firstValue - _secondValue == _total);
+    if (userThinksEquationIsCorrect == isEquationCorrect) {
+      _record++;
+      _levelCounter++;
+      if (_levelCounter > _levelUpAt && _levelIndex <= 5) {
+        _levelUp(_levelIndex);
+      }
+      final nextOperation =
+      _rand.nextBool() ? GameTypes.addition : GameTypes.substraction;
+      _getRandom(nextOperation);
+      final bool isButtonChangeOperation=_rand.nextBool();
+      resetProgress();
       setState(() {
-        _levelCounter++;
-        if (_levelCounter > _levelUpAt && _levelIndex <= 5) {
-          _levelUp(_levelIndex);
-        }
-        _getRandom();
-        _record++;
-        resetProgress();
+        _currentOperation = nextOperation;
+        _isButtonChanged=isButtonChangeOperation;
       });
+    } else {
+      _handleNotHighScore();
     }
   }
-
   void _handleNotHighScore() {
     if (mounted) {
       setState(() {
@@ -203,6 +228,7 @@ class _AdditionWorkState extends State<AdditionWork> {
       await service.updateUserRecord(gameRecord);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -242,12 +268,13 @@ class _AdditionWorkState extends State<AdditionWork> {
                               _firstValue.toString(),
                               style: TextStyle(fontSize: 40),
                             ),
-                            Icon(Icons.add),
+                            Icon(_currentOperation == GameTypes.addition
+                                ? Icons.add
+                                : Icons.remove),
                             Text(
                               _secondValue.toString(),
                               style: TextStyle(fontSize: 40),
-                            ),
-                          ],
+                            ),],
                         ),
                         SizedBox(height: 13),
                         SizedBox(
@@ -271,41 +298,30 @@ class _AdditionWorkState extends State<AdditionWork> {
               ),
             ),
             SizedBox(height: 30),
-            Row(
+            _isButtonChanged? Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  onPressed: _isButtonDisabled
-                      ? null
-                      : () {
-                          if (_progressValue >= 1.0) {
-                            _handleTimeOver();
-                          } else {
-                            if (_firstValue + _secondValue != _total) {
-                              _handleNewHighScore();
-                            } else {
-                              _handleNotHighScore();
-                            }
-                          }
-                        },
-                  icon: Icon(Icons.close, size: 60),
+                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(false),
+                  icon: const Icon(Icons.close, size: 60),
                 ),
-                SizedBox(width: 60),
+                const SizedBox(width: 60),
                 IconButton(
-                  onPressed: _isButtonDisabled
-                      ? null
-                      : () {
-                          if (_progressValue >= 1.0) {
-                            _handleTimeOver();
-                          } else {
-                            if (_firstValue + _secondValue == _total) {
-                              _handleNewHighScore();
-                            } else {
-                              _handleNotHighScore();
-                            }
-                          }
-                        },
-                  icon: Icon(Icons.check_circle, size: 60),
+                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(true),
+                  icon: const Icon(Icons.check_circle, size: 60),
+                ),
+              ],
+            ):Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(true),
+                  icon: const Icon(Icons.check_circle, size: 60),
+                ),
+                const SizedBox(width: 60),
+                IconButton(
+                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(false),
+                  icon: const Icon(Icons.close, size: 60),
                 ),
               ],
             ),

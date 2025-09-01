@@ -55,7 +55,6 @@ class _HomeState extends State<Home> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                  ListOfGames(fontSize: 30),
-                 // Levels()
                 ],
               ),
 

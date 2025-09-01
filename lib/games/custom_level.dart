@@ -3,6 +3,7 @@ import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'addition.dart';
+import 'complex.dart';
 
 class CustomLevel extends StatefulWidget {
   final String gameType;
@@ -21,24 +22,33 @@ class _CustomLevelState extends State<CustomLevel> {
   final _formKey = GlobalKey<FormState>();
 
   Widget _selectGameWidget() {
-    if (widget.gameType == "Addition") {
-      return Addition(
-        levelType: customLevel,
-        min: _min,
-        max: _max,
-        timerSetting: _timer,
-      );
-    } else if (widget.gameType == "Substraction") {
-      return Substraction(
-        levelType: customLevel,
-        min: _min,
-        max: _max,
-        timerSetting: _timer,
-      );
+    switch (widget.gameType) {
+      case "Addition":
+        return Addition(
+          levelType: customLevel,
+          min: _min,
+          max: _max,
+          timerSetting: _timer,
+        );
+      case "Substraction":
+        return Substraction(
+          levelType: customLevel,
+          min: _min,
+          max: _max,
+          timerSetting: _timer,
+        );
+      case "Complex":
+        return Complex(
+          levelType: customLevel,
+          min: _min,
+          max: _max,
+          timerSetting: _timer,
+        );
+      default:
+        return const Scaffold(
+          body: Center(child: Text("Error: Unknown Game Type")),
+        );
     }
-    return const Scaffold(
-      body: Center(child: Text("Error: Unknown Game Type")),
-    );
   }
 
   @override
@@ -115,19 +125,24 @@ class _CustomLevelState extends State<CustomLevel> {
                 },
               ),
               SizedBox(height: 60),
-
-              FilledButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (BuildContext e) => _selectGameWidget(),
+              (_max < _min)
+                  ? Text(
+                      "Highest number be greater than lowest number!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.red, fontSize: 25),
+                    )
+                  : FilledButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (BuildContext e) => _selectGameWidget(),
+                          ),
+                        );
+                      },
+                      label: Text("Play"),
+                      icon: Icon(Icons.games),
                     ),
-                  );
-                },
-                label: Text("Play"),
-                icon: Icon(Icons.games),
-              ),
             ],
           ),
         ),

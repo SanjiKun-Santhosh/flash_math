@@ -1,3 +1,4 @@
+import 'package:flash_math/games/complex.dart';
 import 'package:flash_math/games/substraction.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
@@ -16,16 +17,20 @@ class Levels extends StatefulWidget {
 
 class _LevelsState extends State<Levels> {
   Widget _selectGameWidget(String level) {
-    if (widget.gameType == "Addition") {
-      return Addition(levelType: level);
-    } else if (widget.gameType == "Substraction") {
-      return Substraction(levelType: level);
+    switch (widget.gameType) {
+      case "Addition":
+        return Addition(levelType: level);
+      case "Substraction":
+        return Substraction(levelType: level);
+      case "Complex":
+        return Complex(levelType: level);
+      case "Flash":
+        return Complex(levelType: level);
+      default:
+        return const Scaffold(
+          body: Center(child: Text("Error: Unknown Game Type")),
+        );
     }
-    return const Scaffold(
-      body: Center(
-        child: Text("Error: Unknown Game Type"),
-      ),
-    );
   }
 
   @override
@@ -45,42 +50,51 @@ class _LevelsState extends State<Levels> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    elevation: 5.0,
+                    elevation: 3.0,
                     shadowColor: Colors.red,
                     surfaceTintColor: Colors.greenAccent,
-                    color: const Color(0xFFfb6f92),
+                    color: const Color(0xFFeaf4f4),
                     clipBehavior: Clip.hardEdge,
-                    child: TextButton(
-                      onPressed: () {
-                        if (level == customLevel) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (BuildContext context) =>
-                                  CustomLevel(gameType: widget.gameType),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                       // Icon(Icons.lock, size: 30, color: Colors.grey[700]),
+                        TextButton(
+                          onPressed: () {
+                            if (level == customLevel) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (BuildContext context) =>
+                                      CustomLevel(gameType: widget.gameType),
+                                ),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (BuildContext context) =>
+                                      _selectGameWidget(level),
+                                ),
+                              );
+                            }
+                          },
+                          style: ButtonStyle(
+                            fixedSize: WidgetStateProperty.all<Size>(
+                              const Size.fromWidth(150),
                             ),
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (BuildContext context) => _selectGameWidget(level),
+                          ),
+                          child: Text(
+                            level,
+                            style: TextStyle(
+                              fontSize: 25,
+                              fontFamily: CustomFontStyle().primaryFont,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
                             ),
-                          );
-                        }
-                      },
-                      style: ButtonStyle(
-                        fixedSize: WidgetStateProperty.all<Size>(const Size.fromWidth(150)),
-                      ),
-                      child: Text(
-                        level,
-                        style: TextStyle(
-                          fontSize: 25,
-                          fontFamily: CustomFontStyle().primaryFont,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 20),

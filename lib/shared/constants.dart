@@ -9,7 +9,7 @@ class ImageGallery {
   static const profilePicture= "assets/images/default_profile_picture.jpg";
 }
 
-enum GameTypes { addition, substraction }
+enum GameTypes { addition, substraction ,complex}
 class GameOutputTexts{
   static const personalBest="Your personal best is ";
   static const timeOverMsg="Sorry! The time is over!";

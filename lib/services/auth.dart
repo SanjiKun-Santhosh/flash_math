@@ -1,3 +1,5 @@
+import 'dart:core';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart';
@@ -23,6 +25,52 @@ class Auth {
     return _auth.authStateChanges().map(_userFromFireBase);
   }
 
+  Future loginInAnonymously() async {
+    try {
+      UserCredential credential = await _auth.signInAnonymously();
+      User? user = credential.user;
+      await DatabaseService(uid: user!.uid).addUserData("Player", {
+        "addition": "0",
+        "substraction": "0",
+        "complex": "0",
+      });
+      return _userFromFireBase(user);
+    } catch (e) {
+      print(e.toString()); // TODO
+      return null;
+    }
+  }
+
+  Future<bool> _checkAnonymousUser() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final isUserAnon = user.isAnonymous;
+      return isUserAnon;
+    } else {
+      return false;
+    }
+  }
+
+  Future<MathUser?> linkAnonymousWithCredentials(
+    String email,
+    String password,
+  ) async {
+    try {
+      final currentUser = _auth.currentUser;
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      final userCredential = await currentUser?.linkWithCredential(credential);
+      User? user = userCredential?.user;
+
+      return _userFromFireBase(user);
+    } on FirebaseAuthException catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
+
   Future loginWithEmailAndPassword(String email, String password) async {
     try {
       UserCredential credential = await _auth.signInWithEmailAndPassword(
@@ -44,9 +92,11 @@ class Auth {
         password: password,
       );
       User? user = credential.user;
-      await DatabaseService(
-        uid: user!.uid,
-      ).addUserData("Player", {"addition": "0", "substraction": "0"});
+      await DatabaseService(uid: user!.uid).addUserData("Player", {
+        "addition": "0",
+        "substraction": "0",
+        "complex": "0",
+      });
 
       return _userFromFireBase(user);
     } catch (e) {
@@ -58,7 +108,7 @@ class Auth {
   Future updateName(String name) async {
     try {
       User? user = _auth.currentUser;
-      dynamic result=await DatabaseService(uid: user!.uid).updateName(name);
+      dynamic result = await DatabaseService(uid: user!.uid).updateName(name);
       return result;
     } catch (e) {
       print(e.toString());
@@ -67,30 +117,36 @@ class Auth {
   }
 
   Future updateUserEmailAndPassword(String email, String password) async {
-    try {
-      User? user = _auth.currentUser;
-      String? currentEmail = user?.email;
-      if (email!=currentEmail && email.isNotEmpty) {
-        await user!.verifyBeforeUpdateEmail(email);
+        if (await _checkAnonymousUser() == false) {
+
+      try {
+        User? user = _auth.currentUser;
+        String? currentEmail = user?.email;
+        if (email != currentEmail && email.isNotEmpty) {
+          await user!.verifyBeforeUpdateEmail(email);
+        }
+        if (password.isNotEmpty) {
+          await user!.updatePassword(password);
+        }
+        return _userFromFireBase(user);
+      } catch (e) {
+        print(e.toString());
+        return null;
       }
-      if(password.isNotEmpty){
-      await user!.updatePassword(password);
-      }
-      return _userFromFireBase(user);
-    } catch (e) {
-      print(e.toString());
-      return null;
+    } else {
+      return linkAnonymousWithCredentials(email, password);
     }
   }
+
   Future getEmail() async {
     User? user = _auth.currentUser;
     return user?.email;
-     }
+  }
+
   Future getUid() async {
     User? user = _auth.currentUser;
     return user?.uid;
   }
-
 
   Future<void> signOut() async {
     try {
@@ -131,10 +187,10 @@ class Auth {
     final UserCredential userCredential = await _auth.signInWithCredential(
       credential,
     );
-    final User user=userCredential.user!;
+    final User user = userCredential.user!;
     await DatabaseService(
       uid: user.uid,
-    ).addUserData("Player", {"addition": "0", "substraction": "0"});
+    ).addUserData("Player", {"addition": "0", "substraction": "0","complex":"0"});
     return userCredential;
   }
 

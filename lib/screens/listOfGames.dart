@@ -7,7 +7,7 @@ class ListOfGames extends StatelessWidget {
 
   const ListOfGames({super.key, required this.fontSize});
 
-  List<String> get _gamesList => ["Addition", "Substraction", "Complex"];
+  List<String> get _gamesList => ["Addition", "Substraction", "Complex","Flash"];
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class ListOfGames extends StatelessWidget {
                       elevation: 5.0,
                       shadowColor: Colors.red,
                       surfaceTintColor: Colors.greenAccent,
-                      color: Colors.yellow[500],
+                      color: Colors.yellow[200],
       
                       clipBehavior: Clip.hardEdge,
       

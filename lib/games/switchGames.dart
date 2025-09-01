@@ -1,3 +1,4 @@
+import 'package:flash_math/games/flash.dart';
 import 'package:flash_math/games/addition.dart';
 import 'package:flash_math/games/levels.dart';
 import 'package:flash_math/games/substraction.dart';
@@ -29,6 +30,10 @@ class _SwitchGamesState extends State<SwitchGames> {
         return Levels(gameType: widget.gameChosen);
       case "Substraction":
         return Levels(gameType: widget.gameChosen);
+       case "Complex":
+         return Levels(gameType: widget.gameChosen);
+       case "Flash":
+         return Levels(gameType: widget.gameChosen);;
       default:
         return const Template(child: Loading());
     }}
