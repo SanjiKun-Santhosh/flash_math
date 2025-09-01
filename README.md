@@ -1,6 +1,5 @@
 # flash_math
-
-A new Flutter project.
+A simple math game which will test your critical thinking and fast response.
 
 ## Getting Started
 
