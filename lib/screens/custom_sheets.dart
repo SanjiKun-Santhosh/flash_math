@@ -1,3 +1,4 @@
+import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 
 import 'home.dart';
@@ -11,18 +12,18 @@ class CustomSheets {
       context: context,
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(15),
           child: Column(
             children: [
               AlertDialog(
                 title: Text(
                   gameMsg,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 38),
+                  style: TextStyle(fontSize: 35),
                 ),
                 content: Center(
                   child: const Text(
-                    'Do you want to play again?',
+                    GameOutputTexts.playAgain,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 20),
                   ),

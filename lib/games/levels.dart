@@ -1,4 +1,5 @@
 import 'package:flash_math/games/complex.dart';
+import 'package:flash_math/games/flash.dart';
 import 'package:flash_math/games/substraction.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
@@ -25,7 +26,7 @@ class _LevelsState extends State<Levels> {
       case "Complex":
         return Complex(levelType: level);
       case "Flash":
-        return Complex(levelType: level);
+        return Flash(levelType: level);
       default:
         return const Scaffold(
           body: Center(child: Text("Error: Unknown Game Type")),
@@ -58,7 +59,6 @@ class _LevelsState extends State<Levels> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                       // Icon(Icons.lock, size: 30, color: Colors.grey[700]),
                         TextButton(
                           onPressed: () {
                             if (level == customLevel) {
@@ -79,19 +79,21 @@ class _LevelsState extends State<Levels> {
                               );
                             }
                           },
-                          style: ButtonStyle(
-                            fixedSize: WidgetStateProperty.all<Size>(
-                              const Size.fromWidth(150),
-                            ),
-                          ),
-                          child: Text(
-                            level,
-                            style: TextStyle(
-                              fontSize: 25,
-                              fontFamily: CustomFontStyle().primaryFont,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+
+                          child: Row(
+                            children: [
+                              Icon(Icons.lock),
+                              SizedBox(width: 20,),
+                              Text(
+                                level,
+                                style: TextStyle(
+                                  fontSize: 25,
+                                  fontFamily: CustomFontStyle().primaryFont,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],

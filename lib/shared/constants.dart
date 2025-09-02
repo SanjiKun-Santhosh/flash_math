@@ -12,9 +12,10 @@ class ImageGallery {
 enum GameTypes { addition, substraction ,complex}
 class GameOutputTexts{
   static const personalBest="Your personal best is ";
-  static const timeOverMsg="Sorry! The time is over!";
-  static const answerWrongMsg="Sorry! The answer is wrong!";
+  static const timeOverMsg="Time over!!";
+  static const answerWrongMsg="Wrong answer!!";
   static const congratsMsg="Congratulations!! You new best is ";
+  static const playAgain="Do you want to play again?";
 
 }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -50,8 +51,8 @@ class _FlashState extends State<Flash> {
   late final Map<String, String>? _gameRecord;
   bool _isInitialized = false;
   final Random _rand = Random();
-  GameTypes _currentOperation=GameTypes.addition;
-  bool _isButtonChanged=false;
+  GameTypes _currentOperation = GameTypes.addition;
+  bool _isButtonChanged = false;
 
   @override
   void initState() {
@@ -97,11 +98,13 @@ class _FlashState extends State<Flash> {
       await generator.randomForSub();
       await generator.randomSubTotal();
     }
+    final bool isButtonChangeOperation = _rand.nextBool();
     if (mounted) {
       setState(() {
         _firstValue = generator.firstValue;
         _secondValue = generator.secondValue;
         _total = generator.total;
+        _isButtonChanged = isButtonChangeOperation;
       });
     }
   }
@@ -170,8 +173,7 @@ class _FlashState extends State<Flash> {
       _handleTimeOver();
       return;
     }
-    final bool isEquationCorrect =
-    _currentOperation == GameTypes.addition
+    final bool isEquationCorrect = _currentOperation == GameTypes.addition
         ? (_firstValue + _secondValue == _total)
         : (_firstValue - _secondValue == _total);
     if (userThinksEquationIsCorrect == isEquationCorrect) {
@@ -180,19 +182,20 @@ class _FlashState extends State<Flash> {
       if (_levelCounter > _levelUpAt && _levelIndex <= 5) {
         _levelUp(_levelIndex);
       }
-      final nextOperation =
-      _rand.nextBool() ? GameTypes.addition : GameTypes.substraction;
+      final nextOperation = _rand.nextBool()
+          ? GameTypes.addition
+          : GameTypes.substraction;
       _getRandom(nextOperation);
-      final bool isButtonChangeOperation=_rand.nextBool();
+
       resetProgress();
       setState(() {
         _currentOperation = nextOperation;
-        _isButtonChanged=isButtonChangeOperation;
       });
     } else {
       _handleNotHighScore();
     }
   }
+
   void _handleNotHighScore() {
     if (mounted) {
       setState(() {
@@ -228,7 +231,6 @@ class _FlashState extends State<Flash> {
       await service.updateUserRecord(gameRecord);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -268,13 +270,16 @@ class _FlashState extends State<Flash> {
                               _firstValue.toString(),
                               style: TextStyle(fontSize: 40),
                             ),
-                            Icon(_currentOperation == GameTypes.addition
-                                ? Icons.add
-                                : Icons.remove),
+                            Icon(
+                              _currentOperation == GameTypes.addition
+                                  ? Icons.add
+                                  : Icons.remove,
+                            ),
                             Text(
                               _secondValue.toString(),
                               style: TextStyle(fontSize: 40),
-                            ),],
+                            ),
+                          ],
                         ),
                         SizedBox(height: 13),
                         SizedBox(
@@ -298,33 +303,43 @@ class _FlashState extends State<Flash> {
               ),
             ),
             SizedBox(height: 30),
-            _isButtonChanged? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(false),
-                  icon: const Icon(Icons.close, size: 60),
-                ),
-                const SizedBox(width: 60),
-                IconButton(
-                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(true),
-                  icon: const Icon(Icons.check_circle, size: 60),
-                ),
-              ],
-            ):Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(true),
-                  icon: const Icon(Icons.check_circle, size: 60),
-                ),
-                const SizedBox(width: 60),
-                IconButton(
-                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(false),
-                  icon: const Icon(Icons.close, size: 60),
-                ),
-              ],
-            ),
+            _isButtonChanged
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _isButtonDisabled
+                            ? null
+                            : () => _submitAnswer(false),
+                        icon: const Icon(Icons.close, size: 60),
+                      ),
+                      const SizedBox(width: 60),
+                      IconButton(
+                        onPressed: _isButtonDisabled
+                            ? null
+                            : () => _submitAnswer(true),
+                        icon: const Icon(Icons.check_circle, size: 60),
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _isButtonDisabled
+                            ? null
+                            : () => _submitAnswer(true),
+                        icon: const Icon(Icons.check_circle, size: 60),
+                      ),
+                      const SizedBox(width: 60),
+                      IconButton(
+                        onPressed: _isButtonDisabled
+                            ? null
+                            : () => _submitAnswer(false),
+                        icon: const Icon(Icons.close, size: 60),
+                      ),
+                    ],
+                  ),
             Text(
               "Game on!",
               style: TextStyle(

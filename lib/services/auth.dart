@@ -33,6 +33,7 @@ class Auth {
         "addition": "0",
         "substraction": "0",
         "complex": "0",
+        "flash":"0"
       });
       return _userFromFireBase(user);
     } catch (e) {
@@ -96,6 +97,7 @@ class Auth {
         "addition": "0",
         "substraction": "0",
         "complex": "0",
+        "flash":"0"
       });
 
       return _userFromFireBase(user);
@@ -190,7 +192,7 @@ class Auth {
     final User user = userCredential.user!;
     await DatabaseService(
       uid: user.uid,
-    ).addUserData("Player", {"addition": "0", "substraction": "0","complex":"0"});
+    ).addUserData("Player", {"addition": "0", "substraction": "0","complex":"0","flash":"0"});
     return userCredential;
   }
 
