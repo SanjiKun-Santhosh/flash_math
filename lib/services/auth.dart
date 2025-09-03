@@ -33,7 +33,7 @@ class Auth {
         "addition": "0",
         "substraction": "0",
         "complex": "0",
-        "flash":"0"
+        "flash": "0",
       });
       return _userFromFireBase(user);
     } catch (e) {
@@ -97,7 +97,7 @@ class Auth {
         "addition": "0",
         "substraction": "0",
         "complex": "0",
-        "flash":"0"
+        "flash": "0",
       });
 
       return _userFromFireBase(user);
@@ -119,8 +119,7 @@ class Auth {
   }
 
   Future updateUserEmailAndPassword(String email, String password) async {
-        if (await _checkAnonymousUser() == false) {
-
+    if (await _checkAnonymousUser() == false) {
       try {
         User? user = _auth.currentUser;
         String? currentEmail = user?.email;
@@ -189,10 +188,6 @@ class Auth {
     final UserCredential userCredential = await _auth.signInWithCredential(
       credential,
     );
-    final User user = userCredential.user!;
-    await DatabaseService(
-      uid: user.uid,
-    ).addUserData("Player", {"addition": "0", "substraction": "0","complex":"0","flash":"0"});
     return userCredential;
   }
 
@@ -203,8 +198,15 @@ class Auth {
         scopeHint: ['email'],
       );
       final UserCredential userCredential = await _googleSignInSupport(account);
+      final User user = userCredential.user!;
+      await DatabaseService(uid: user.uid).addUserData("Player", {
+        "addition": "0",
+        "substraction": "0",
+        "complex": "0",
+        "flash": "0",
+      });
 
-      return _userFromFireBase(userCredential.user);
+      return _userFromFireBase(user);
     } on GoogleSignInException catch (e) {
       print(
         'Google Sign In error: code: ${e.code.name} description:${e.description} details:${e.details}, error: $e',

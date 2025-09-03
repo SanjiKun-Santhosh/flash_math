@@ -43,7 +43,7 @@ class _FlashState extends State<Flash> {
   double _progressValue = 0.0;
   Timer? _timer;
   bool _isButtonDisabled = false;
-  final String _gameType = GameTypes.complex.name;
+  final String _gameType = GameTypes.flash.name;
   int currentRecord = 0;
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();

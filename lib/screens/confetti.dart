@@ -32,7 +32,7 @@ class _ConfettiState extends State<Confetti> {
     setState(() {
       _controllerBottomCenter.play();
     });
-    return Align(alignment:Alignment.bottomCenter,
+    return Align(alignment:Alignment.topCenter,
         child:   ConfettiWidget(
           confettiController: _controllerBottomCenter,
           blastDirection: -pi / 2,

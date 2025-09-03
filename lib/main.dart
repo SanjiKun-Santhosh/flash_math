@@ -8,6 +8,7 @@ import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/screens/wrapper.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/services/database.dart';
+import 'package:flash_math/services/hive_Service.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -36,6 +37,9 @@ void main() async {
           },
           initialData: null,
         ),
+        ChangeNotifierProvider(create: (context){
+          return HiveService();
+        })
       ],
       child: MyApp(),
     ),
