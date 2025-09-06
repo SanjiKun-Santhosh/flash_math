@@ -12,7 +12,6 @@ class Auth {
   bool _isGoogleSignInInitialized = false;
   final String _serverClientId =
       "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com";
-
   Auth() {
     _initializeGoogleSignIn();
   }

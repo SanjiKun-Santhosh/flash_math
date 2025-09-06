@@ -17,7 +17,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final Auth _auth = Auth();
-
+bool _loading=false;
   @override
   void initState() {
     // TODO: implement initSt
@@ -36,7 +36,8 @@ class _HomeState extends State<Home> {
     final userRecord = context.watch<UserRecord?>();
     final hiveService = context.watch<HiveService>();
     if (userRecord != null) {
-      return Scaffold(
+      return _loading ? Loading():
+       Scaffold(
         appBar: AppBar(
           elevation: 0.0,
           centerTitle: true,
@@ -65,7 +66,13 @@ class _HomeState extends State<Home> {
               ),
               ElevatedButton.icon(
                 onPressed: () async {
+                  setState(() {
+                    _loading=true;
+                  });
                   await _auth.signOut();
+                  setState(() {
+                    _loading=false;
+                  });
                 },
                 icon: Icon(Icons.logout_rounded),
                 label: Text("Logout"),
