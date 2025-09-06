@@ -7,7 +7,7 @@ class UserHiveStorage extends HiveObject {
   @HiveField(0)
   final String id;
   @HiveField(1)
-  final String profilePicture;
+  late String profilePicture;
 
   UserHiveStorage({required this.id, required this.profilePicture});
 }

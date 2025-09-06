@@ -122,7 +122,6 @@ class _RegisterState extends State<Register> {
                                 _currentEmail,
                                 _currentPassword,
                               );
-                          print(result);
                         }
                       },
 

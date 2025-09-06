@@ -4,6 +4,9 @@ import 'package:flash_math/games/substraction.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/user.dart';
+import '../services/hive_Service.dart';
 import 'addition.dart';
 import 'custom_level.dart';
 
@@ -17,6 +20,19 @@ class Levels extends StatefulWidget {
 }
 
 class _LevelsState extends State<Levels> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final mathUser = context.read<MathUser?>();
+
+      if (mathUser != null) {
+        context.read<HiveService>().loadProfileImage(mathUser.uid);
+      }
+    });
+  }
+
   Widget _selectGameWidget(String level) {
     switch (widget.gameType) {
       case "Addition":
@@ -36,73 +52,94 @@ class _LevelsState extends State<Levels> {
 
   @override
   Widget build(BuildContext context) {
-    return Template(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(25),
-          margin: const EdgeInsets.all(15),
-          child: Column(
-            children: levelList.keys.map((level) {
-              return Column(
-                children: [
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 3.0,
-                    shadowColor: Colors.red,
-                    surfaceTintColor: Colors.greenAccent,
-                    color: const Color(0xFFeaf4f4),
-                    clipBehavior: Clip.hardEdge,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            if (level == customLevel) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute<void>(
-                                  builder: (BuildContext context) =>
-                                      CustomLevel(gameType: widget.gameType),
-                                ),
-                              );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute<void>(
-                                  builder: (BuildContext context) =>
-                                      _selectGameWidget(level),
-                                ),
-                              );
-                            }
-                          },
+    final hiveService = context.watch<HiveService>();
 
-                          child: Row(
-                            children: [
-                              Icon(Icons.lock),
-                              SizedBox(width: 20,),
-                              Text(
-                                level,
-                                style: TextStyle(
-                                  fontSize: 25,
-                                  fontFamily: CustomFontStyle().primaryFont,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
+    return Template(
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          elevation: 0.0,
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              CircleAvatar(
+                radius: 30,
+                backgroundImage: hiveService.profileImage != null
+                    ? FileImage(hiveService.profileImage!)
+                    : null,
+                child: hiveService.profileImage == null
+                    ? Icon(Icons.person)
+                    : null,
+              ),
+            ],
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(25),
+            margin: const EdgeInsets.all(15),
+            child: Column(
+              children: levelList.keys.map((level) {
+                return Column(
+                  children: [
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 3.0,
+                      shadowColor: Colors.red,
+                      surfaceTintColor: Colors.greenAccent,
+                      color: const Color(0xFFeaf4f4),
+                      clipBehavior: Clip.hardEdge,
+                      child: TextButton(
+                        onPressed: () {
+                          if (level == customLevel) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (BuildContext context) =>
+                                    CustomLevel(gameType: widget.gameType),
                               ),
-                            ],
-                          ),
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (BuildContext context) =>
+                                    _selectGameWidget(level),
+                              ),
+                            );
+                          }
+                        },
+
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.lock),
+                            SizedBox(width: 20),
+                            Text(
+                              level,
+                              style: TextStyle(
+                                fontSize: 25,
+                                fontFamily: CustomFontStyle().primaryFont,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              );
-            }).toList(),
+                    const SizedBox(height: 20),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),

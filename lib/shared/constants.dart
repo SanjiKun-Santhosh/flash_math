@@ -1,7 +1,4 @@
-import 'package:flash_math/games/substraction.dart';
 import 'package:flutter/material.dart';
-
-import '../games/addition.dart';
 
 class ImageGallery {
   static const primaryBG = "assets/images/primary_bg.jpeg";
@@ -9,7 +6,7 @@ class ImageGallery {
   static const profilePicture= "assets/images/default_profile_picture.jpg";
 }
 
-enum GameTypes { addition, substraction ,complex,flash}
+enum GameTypes { addition, substraction ,complex, flash}
 class GameOutputTexts{
   static const personalBest="Your personal best is ";
   static const timeOverMsg="Time over!!";
@@ -61,15 +58,21 @@ const Map<String,String> levelList = {
 "Level 3" :"55",
 "Level 4":"30",
 "Level 5":"15",
-"Custom":""
+"Practice":""
 };
 final List levelListKeys = levelList.keys.toList();
-const String customLevel="Custom";
+const String customLevel="Practice";
 const int defaultTimerSetting=30;
 const int defaultLevelUpAt=2;
 const int maximumLevelUpAt=10000;
 const int minimumForRandomGen=0;
 const int maximumForRandomGen=100;
 
+const Map<String,String> gameRecordInitialization={
+  "addition":"0",
+  "substraction":"0",
+  "complex":"0",
+  "flash":"0",
+};
 
 

@@ -31,7 +31,7 @@ class ListOfGames extends StatelessWidget {
                       elevation: 5.0,
                       shadowColor: Colors.red,
                       surfaceTintColor: Colors.greenAccent,
-                      color: Colors.yellow[200],
+                      color: const Color(0xFFeaf4f4),
       
                       clipBehavior: Clip.hardEdge,
       

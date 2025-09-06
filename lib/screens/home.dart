@@ -4,6 +4,7 @@ import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/user.dart';
 import '../models/user_record.dart';
 import '../services/hive_Service.dart';
 
@@ -21,13 +22,15 @@ class _HomeState extends State<Home> {
   void initState() {
     // TODO: implement initSt
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      final userRecord = context.read<UserRecord?>();
-      if(userRecord!=null){
-        context.read<HiveService>().loadProfileImage(userRecord.uid);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final mathUser = context.read<MathUser?>();
+
+      if (mathUser != null) {
+        context.read<HiveService>().loadProfileImage(mathUser.uid);
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     final userRecord = context.watch<UserRecord?>();
@@ -35,13 +38,12 @@ class _HomeState extends State<Home> {
     if (userRecord != null) {
       return Scaffold(
         appBar: AppBar(
-          elevation: 3.0,
+          elevation: 0.0,
           centerTitle: true,
           backgroundColor: Colors.transparent,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-
               ElevatedButton.icon(
                 onPressed: () {
                   setState(() {
@@ -61,7 +63,7 @@ class _HomeState extends State<Home> {
                     ? Icon(Icons.person)
                     : null,
               ),
-                            ElevatedButton.icon(
+              ElevatedButton.icon(
                 onPressed: () async {
                   await _auth.signOut();
                 },
@@ -72,12 +74,16 @@ class _HomeState extends State<Home> {
           ),
         ),
         backgroundColor: Colors.transparent,
-        body: Container(
-          padding: EdgeInsets.fromLTRB(15, 15, 15, 0),
-          margin: EdgeInsets.all(40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [ListOfGames(fontSize: 30)],
+        body: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.fromLTRB(15, 15, 15, 0),
+            margin: EdgeInsets.all(40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(height: 90,),
+                ListOfGames(fontSize: 30)],
+            ),
           ),
         ),
       );

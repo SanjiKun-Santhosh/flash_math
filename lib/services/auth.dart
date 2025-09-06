@@ -1,16 +1,16 @@
 import 'dart:core';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flash_math/shared/constants.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart';
 import 'database.dart';
 
-///signout method is essential.
 class Auth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _isGoogleSignInInitialized = false;
-  final String _serverCliendId =
+  final String _serverClientId =
       "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com";
 
   Auth() {
@@ -29,15 +29,10 @@ class Auth {
     try {
       UserCredential credential = await _auth.signInAnonymously();
       User? user = credential.user;
-      await DatabaseService(uid: user!.uid).addUserData("Player", {
-        "addition": "0",
-        "substraction": "0",
-        "complex": "0",
-        "flash": "0",
-      });
+      await DatabaseService(uid: user!.uid).addUserData("Player", gameRecordInitialization);
       return _userFromFireBase(user);
     } catch (e) {
-      print(e.toString()); // TODO
+
       return null;
     }
   }
@@ -67,7 +62,6 @@ class Auth {
 
       return _userFromFireBase(user);
     } on FirebaseAuthException catch (e) {
-      print(e.toString());
       return null;
     }
   }
@@ -81,7 +75,6 @@ class Auth {
       User? user = credential.user;
       return _userFromFireBase(user);
     } catch (e) {
-      print(e.toString()); // TODO
       return null;
     }
   }
@@ -93,16 +86,10 @@ class Auth {
         password: password,
       );
       User? user = credential.user;
-      await DatabaseService(uid: user!.uid).addUserData("Player", {
-        "addition": "0",
-        "substraction": "0",
-        "complex": "0",
-        "flash": "0",
-      });
+      await DatabaseService(uid: user!.uid).addUserData("Player", gameRecordInitialization);
 
       return _userFromFireBase(user);
     } catch (e) {
-      print(e.toString()); // TODO
       return null;
     }
   }
@@ -113,7 +100,6 @@ class Auth {
       dynamic result = await DatabaseService(uid: user!.uid).updateName(name);
       return result;
     } catch (e) {
-      print(e.toString());
       return null;
     }
   }
@@ -131,7 +117,6 @@ class Auth {
         }
         return _userFromFireBase(user);
       } catch (e) {
-        print(e.toString());
         return null;
       }
     } else {
@@ -154,17 +139,16 @@ class Auth {
       await _googleSignIn.signOut();
       await _auth.signOut();
     } catch (e) {
-      print(e.toString()); // TODO
-      return null;
+      return;
     }
   }
 
   Future<void> _initializeGoogleSignIn() async {
     try {
-      await _googleSignIn.initialize(serverClientId: _serverCliendId);
+      await _googleSignIn.initialize(serverClientId: _serverClientId);
       _isGoogleSignInInitialized = true;
     } catch (e) {
-      print(e.toString());
+      return;
     }
   }
 
@@ -199,12 +183,7 @@ class Auth {
       );
       final UserCredential userCredential = await _googleSignInSupport(account);
       final User user = userCredential.user!;
-      await DatabaseService(uid: user.uid).addUserData("Player", {
-        "addition": "0",
-        "substraction": "0",
-        "complex": "0",
-        "flash": "0",
-      });
+      await DatabaseService(uid: user.uid).addUserData("Player", gameRecordInitialization);
 
       return _userFromFireBase(user);
     } on GoogleSignInException catch (e) {

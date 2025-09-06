@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flash_math/models/user_record.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/screens/profile/profile_support.dart';
@@ -6,12 +5,10 @@ import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-
-import '../../models/storage_hive_model.dart';
 import '../../models/user.dart';
+import '../../services/hive_Service.dart';
 
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
@@ -23,11 +20,9 @@ class UserProfile extends StatefulWidget {
 class _UserProfileState extends State<UserProfile> {
   final Auth _auth = Auth();
   final ImagePicker _imagePicker = ImagePicker();
-  final Box<UserHiveStorage> _hiveStorage = Hive.box<UserHiveStorage>(userHiveBox);
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _textEmailController = TextEditingController();
   final TextEditingController _textNameController = TextEditingController();
-  File? _imageFile;
   String _newPassword = "";
   bool _loading = false;
   bool _showPassword = false;
@@ -36,20 +31,25 @@ class _UserProfileState extends State<UserProfile> {
   final RegExp _passwordRegex = RegExp(
     r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;\$\~])',
   );
+  final Map<String, String> _updatedGameRecord = Map<String, String>.from(
+    gameRecordInitialization,
+  );
 
   @override
   void initState() {
     super.initState();
-    }
+    final userRecord = context.read<UserRecord?>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final mathUser = context.read<MathUser?>();
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-   final mathUser = context.watch<MathUser?>();
-    final userRecord = context.watch<UserRecord?>();
-
+      if (mathUser != null) {
+        context.read<HiveService>().loadProfileImage(mathUser.uid);
+      }
+    });
     if (userRecord != null && _textNameController.text.isEmpty) {
-      _textNameController.text = userRecord.name.isEmpty ? "Player" : userRecord.name;
+      _textNameController.text = userRecord.name.isEmpty
+          ? "Player"
+          : userRecord.name;
     }
 
     if (_textEmailController.text.isEmpty) {
@@ -59,9 +59,6 @@ class _UserProfileState extends State<UserProfile> {
         }
       });
     }
-    if (mathUser?.uid != null) {
-      _loadProfileImage(mathUser!.uid);
-    }
   }
 
   @override
@@ -70,25 +67,14 @@ class _UserProfileState extends State<UserProfile> {
     _textNameController.dispose();
     super.dispose();
   }
-  Future<void> _loadProfileImage(String userId) async {
-    final UserHiveStorage? imageFromHive = _hiveStorage.get(userId);
-    if (imageFromHive != null && mounted) {
-      setState(() {
-        _imageFile = File(imageFromHive.profilePicture);
-      });
-    }
-  }
 
-  Future<void> _pickImage(String userId) async {
-    final XFile? pickedImage = await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (pickedImage == null) return;
-    await _hiveStorage.put(
-      userId,
-      UserHiveStorage(id: userId, profilePicture: pickedImage.path),
+  Future<void> _pickImage(HiveService service, String userId) async {
+    final XFile? pickedImage = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
     );
-    if (mounted) {
-      setState(() => _imageFile = File(pickedImage.path));
-    }
+    if (pickedImage == null) return;
+    await service.saveProfileImage(userId, pickedImage.path);
+    await service.loadProfileImage(userId);
   }
 
   Future<void> _saveProfileChanges() async {
@@ -99,16 +85,15 @@ class _UserProfileState extends State<UserProfile> {
     setState(() => _loading = true);
 
     try {
-       await _auth.updateUserEmailAndPassword(
+      await _auth.updateUserEmailAndPassword(
         _textEmailController.text,
         _newPassword,
       );
-  await _auth.updateName(_textNameController.text);
+      await _auth.updateName(_textNameController.text);
       if (!mounted) return;
       _valueChanged = false;
 
       Navigator.pop(context);
-
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -129,7 +114,7 @@ class _UserProfileState extends State<UserProfile> {
   Widget build(BuildContext context) {
     final mathUser = context.watch<MathUser?>();
     final userRecord = context.watch<UserRecord?>();
-
+    final hiveService = context.watch<HiveService>();
     if (mathUser == null) {
       return Template(child: Loading());
     }
@@ -137,122 +122,153 @@ class _UserProfileState extends State<UserProfile> {
     return _loading
         ? Template(child: Loading())
         : Scaffold(
-      backgroundColor: Colors.transparent,
-      resizeToAvoidBottomInset: false,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: () => _pickImage(mathUser.uid),
-                  child: CircleAvatar(
-                    radius: 90,
-                    backgroundColor: Colors.red,
-                    backgroundImage: _imageFile != null
-                        ? FileImage(_imageFile!)
-                        : const AssetImage(ImageGallery.profilePicture) as ImageProvider,
-                    child: _imageFile == null
-                        ? const Icon(Icons.person, color: Colors.white, size: 40)
-                        : null,
+            backgroundColor: Colors.transparent,
+            resizeToAvoidBottomInset: false,
+            body: SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () => _pickImage(hiveService, mathUser.uid),
+                        child: CircleAvatar(
+                          radius: 90,
+                          backgroundColor: Colors.red,
+                          backgroundImage: hiveService.profileImage != null
+                              ? FileImage(hiveService.profileImage!)
+                              : const AssetImage(ImageGallery.profilePicture)
+                                    as ImageProvider,
+                          child: hiveService.profileImage == null
+                              ? const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 40,
+                                )
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                decoration: AppDecoration().textDecoration
+                                    .copyWith(labelText: "Name"),
+                                controller: _textNameController,
+                                onChanged: (_) =>
+                                    setState(() => _valueChanged = true),
+                              ),
+                              const SizedBox(height: 30),
+                              TextFormField(
+                                decoration: AppDecoration().textDecoration
+                                    .copyWith(labelText: "Email"),
+                                controller: _textEmailController,
+                                onChanged: (_) =>
+                                    setState(() => _valueChanged = true),
+                                validator: (val) {
+                                  if (val == null ||
+                                      !val.contains('@') ||
+                                      !val.contains('.')) {
+                                    return "Please enter a valid email address";
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 30),
+                              TextFormField(
+                                decoration: AppDecoration().textDecoration
+                                    .copyWith(labelText: "New Password"),
+                                obscuringCharacter: "*",
+                                obscureText: !_showPassword,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _newPassword = val;
+                                    _valueChanged = true;
+                                  });
+                                },
+                                validator: (val) {
+                                  if (val == null ||
+                                      val.isEmpty ||
+                                      val == "Password") {
+                                    return null;
+                                  }
+                                  if (!_passwordRegex.hasMatch(val)) {
+                                    return ErrorMsg().passwordErrorMsg;
+                                  }
+                                  return null;
+                                },
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  const Text("Show password"),
+                                  const SizedBox(width: 5),
+                                  Checkbox(
+                                    value: _showPassword,
+                                    onChanged: (val) {
+                                      setState(
+                                        () => _showPassword = !_showPassword,
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      for (var key in _updatedGameRecord.keys) {
+                                        String? val =
+                                            userRecord?.gameRecord![key];
+                                        if (userRecord?.gameRecord![key] ==
+                                            null) {
+                                          _updatedGameRecord[key] = "0";
+                                        } else {
+                                          _updatedGameRecord[key] = val!;
+                                        }
+                                      }
+                                      recordBottomSheet
+                                          .showCustomModalBottomSheet(
+                                            context,
+                                            gameRecord: _updatedGameRecord,
+                                          );
+                                    },
+                                    child: const Text("View Record"),
+                                  ),
+                                  ElevatedButton.icon(
+                                    onPressed: () async {
+                                      if (_valueChanged) {
+                                        _saveProfileChanges();
+                                      } else {
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                    icon: const Icon(Icons.save_alt_rounded),
+                                    label: const Text("Save Changes"),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          decoration: AppDecoration().textDecoration.copyWith(labelText: "Name"),
-                          controller: _textNameController,
-                          onChanged: (_) => setState(() => _valueChanged = true),
-                        ),
-                        const SizedBox(height: 30),
-                        TextFormField(
-                          decoration: AppDecoration().textDecoration.copyWith(labelText: "Email"),
-                          controller: _textEmailController,
-                          onChanged: (_) => setState(() => _valueChanged = true),
-                          validator: (val) {
-                            if (val == null || !val.contains('@') || !val.contains('.')) {
-                              return "Please enter a valid email address";
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 30),
-                        TextFormField(
-                          decoration: AppDecoration().textDecoration.copyWith(labelText: "New Password"),
-                          obscuringCharacter: "*",
-                          obscureText: !_showPassword,
-                          onChanged: (val) {
-                            setState(() {
-                              _newPassword = val;
-                              _valueChanged = true;
-                            });
-                          },
-                          validator: (val) {
-                            if (val == null || val.isEmpty || val == "Password") {
-                              return null;
-                            }
-                            if (!_passwordRegex.hasMatch(val)) {
-                              return ErrorMsg().passwordErrorMsg;
-                            }
-                            return null;
-                          },
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            const Text("Show password"),
-                            const SizedBox(width: 5),
-                            Checkbox(
-                              value: _showPassword,
-                              onChanged: (val) {
-                                setState(() => _showPassword = !_showPassword);
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                recordBottomSheet.showCustomModalBottomSheet(
-                                  context,
-                                  gameRecord: userRecord?.gameRecord,
-                                );
-                              },
-                              child: const Text("View Record"),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: () async {
-                                if (_valueChanged) {
-                                  _saveProfileChanges();
-                                } else {
-                                  Navigator.pop(context);
-                                }
-                              },
-                              icon: const Icon(Icons.save_alt_rounded),
-                              label: const Text("Save Changes"),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-    );
+          );
   }
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 class RecordBottomSheet{
-  void showCustomModalBottomSheet(BuildContext context, {required Map<String, String>? gameRecord}) {
+  void showCustomModalBottomSheet(BuildContext context, {required Map<String, String> gameRecord}) {
     showModalBottomSheet(
       elevation: 2.0,
       isDismissible: false,
       context: context,
       builder: (BuildContext bottomSheetContext) {
-        if(gameRecord==null || gameRecord.isEmpty){
+        if(gameRecord.isEmpty){
           return Container(
             padding: EdgeInsets.all(20),
             child: Center(
@@ -17,7 +17,7 @@ class RecordBottomSheet{
         return Container(
           height: 700,
           decoration: BoxDecoration(
-            color: Colors.grey[300],
+            color: Colors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -32,7 +32,7 @@ class RecordBottomSheet{
                   children: [
                     SizedBox(height: 25,),
                     Card(
-                      elevation: 1.0,
+                      elevation: 2.0,
                       shape: StadiumBorder(
                         side: BorderSide(
                           color: Colors.black,
@@ -42,10 +42,8 @@ class RecordBottomSheet{
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("${entry.key.toUpperCase()}: ",style: TextStyle(
+                          Text("${entry.key}: ",style: TextStyle(
                             fontSize: 30,
-                            fontWeight: FontWeight.bold,
-
                           ),),
                           Text(entry.value,style: TextStyle(
                             fontSize: 30,
@@ -56,7 +54,7 @@ class RecordBottomSheet{
                         ],
                       ),
                     ),
-                    SizedBox(height: 15,),
+                    SizedBox(height: 5,),
                   ],
                 );
               }).toList()

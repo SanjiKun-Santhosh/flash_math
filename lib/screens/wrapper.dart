@@ -1,4 +1,3 @@
-import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

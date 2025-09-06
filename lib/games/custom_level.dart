@@ -56,94 +56,98 @@ class _CustomLevelState extends State<CustomLevel> {
     return Template(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.grey[100],
-          ),
-          padding: EdgeInsets.all(25),
-          margin: EdgeInsets.all(15),
-          child: Column(
-            key: _formKey,
-            children: [
-              Text(
-                "Answer timer",
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w900,
-                  fontFamily: CustomFontStyle().primaryFont,
+        body: SingleChildScrollView(
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(25),
+            margin: EdgeInsets.all(15),
+            child: Column(
+              key: _formKey,
+              children: [
+                Text(
+                  "Answer timer",
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    fontFamily: CustomFontStyle().primaryFont,
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              Slider(
-                value: _timerSlide,
-                activeColor: Colors.red[_timerSlide.round() * 100],
-                inactiveColor: Colors.brown[_timerSlide.round() * 100],
-                onChanged: (val) {
-                  setState(() {
-                    _timerSlide = val;
-                    _timer = (val).round() * 10;
-                  });
-                },
-                min: 1,
-                max: 10,
-                divisions: 10,
-              ),
-              Text(
-                "${_timerSlide.round().toString()} seconds",
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: CustomFontStyle().primaryFont,
+                SizedBox(height: 30),
+                Slider(
+                  value: _timerSlide,
+                  thumbColor: Colors.black,
+                  activeColor: Colors.blue[_timerSlide.round() * 100],
+                  inactiveColor: Colors.red[_timerSlide.round() * 100],
+                  onChanged: (val) {
+                    setState(() {
+                      _timerSlide = val;
+                      _timer = (val).round() * 10;
+                    });
+                  },
+                  min: 1,
+                  max: defaultTimerSetting.toDouble(),
+                  divisions: defaultTimerSetting,
                 ),
-              ),
-              SizedBox(height: 60),
-              TextField(
-                textAlign: TextAlign.center,
-                decoration: AppDecoration().textDecoration.copyWith(
-                  hintText: "Lowest number",
+                Text(
+                  "${_timerSlide.round().toString()} seconds",
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: CustomFontStyle().primaryFont,
+                  ),
                 ),
-                style: TextStyle(fontSize: 25),
-                onChanged: (val) {
-                  setState(() {
-                    _min = int.parse(val);
-                  });
-                },
-              ),
-              SizedBox(height: 60),
-              TextField(
-                textAlign: TextAlign.center,
-                decoration: AppDecoration().textDecoration.copyWith(
-                  hintText: "Highest number",
+                SizedBox(height: 60),
+                TextField(
+                  textAlign: TextAlign.center,
+                  decoration: AppDecoration().textDecoration.copyWith(
+                    hintText: "Lowest number",
+                  ),
+                  style: TextStyle(fontSize: 25),
+                  onChanged: (val) {
+                    setState(() {
+                      _min = int.parse(val);
+                    });
+                  },
                 ),
-                style: TextStyle(fontSize: 25),
-                onChanged: (val) {
-                  setState(() {
-                    _max = int.parse(val);
-                  });
-                },
-              ),
-              SizedBox(height: 60),
-              (_max < _min)
-                  ? Text(
-                      "Highest number be greater than lowest number!",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.red, fontSize: 25),
-                    )
-                  : FilledButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (BuildContext e) => _selectGameWidget(),
+                SizedBox(height: 60),
+                TextField(
+                  textAlign: TextAlign.center,
+                  decoration: AppDecoration().textDecoration.copyWith(
+                    hintText: "Highest number",
+                  ),
+                  style: TextStyle(fontSize: 25),
+                  onChanged: (val) {
+                    setState(() {
+                      _max = int.parse(val);
+                    });
+                  },
+                ),
+                SizedBox(height: 60),
+                (_max < _min)
+                    ? Text(
+                        "Highest number should be greater than lowest number!",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.black, fontSize: 28),
+                      )
+                    : FilledButton.icon(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all<Color>(
+                            Colors.red[300]!,
                           ),
-                        );
-                      },
-                      label: Text("Play"),
-                      icon: Icon(Icons.games),
-                    ),
-            ],
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (BuildContext e) => _selectGameWidget(),
+                            ),
+                          );
+                        },
+                        label: Text(" Play", style: TextStyle(fontSize: 30)),
+                        icon: Icon(Icons.games, size: 20),
+                      ),
+              ],
+            ),
           ),
         ),
       ),
