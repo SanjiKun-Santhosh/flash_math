@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../game_algorithm/number_generator.dart';
-import '../screens/loading.dart';
+import '../models/game_record.dart';
 import '../services/database.dart';
 import '../shared/constants.dart';
 import '../screens/custom_sheets.dart';
@@ -16,11 +16,13 @@ class Substraction extends StatefulWidget {
   final int max;
   final int timerSetting;
 
-  const Substraction({ super.key,
-    this.levelType = customLevel,
+  const Substraction({
+    super.key,
+    this.levelType = practiceLevel,
     this.timerSetting = defaultTimerSetting,
     this.min = minimumForRandomGen,
-    this.max = maximumForRandomGen,});
+    this.max = maximumForRandomGen,
+  });
 
   @override
   State<Substraction> createState() => _SubstractionState();
@@ -45,7 +47,8 @@ class _SubstractionState extends State<Substraction> {
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();
   late final DatabaseService _service;
-  late final Map<String, String>? _gameRecord;
+  late final GameRecord _selectedGameRecord;
+  late final UserRecord _streamUserRecord;
   bool _isInitialized = false;
 
   @override
@@ -63,16 +66,17 @@ class _SubstractionState extends State<Substraction> {
       return;
     }
     _service = DatabaseService(uid: userRecord.uid);
-    if (widget.levelType == customLevel) {
+    if (widget.levelType == practiceLevel) {
       _timerSpeed = widget.timerSetting;
       _levelIndex = 0;
-      _gameRecord = {};
+      _selectedGameRecord = gameTypesInitialisation(_gameType);
     } else {
       _timerSpeed = int.parse(levelList[widget.levelType]!);
       _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
-      _gameRecord = userRecord.gameRecord;
+      _selectedGameRecord = userRecord.gameRecord![_gameType]!;
     }
-    currentRecord = globalRecord = int.parse(_gameRecord?[_gameType] ?? "0");
+    _streamUserRecord = userRecord;
+    currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
     _levelUpAt = defaultLevelUpAt;
     _min = widget.min;
     _max = widget.max;
@@ -95,7 +99,6 @@ class _SubstractionState extends State<Substraction> {
       });
     }
   }
-
 
   void startProgress() {
     final oneHundredthOfASecond = Duration(milliseconds: _timerSpeed);
@@ -125,17 +128,15 @@ class _SubstractionState extends State<Substraction> {
     });
   }
 
-
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
 
-
   void _levelUp(int levelIndex) {
     setState(() {
-      if (widget.levelType != customLevel) {
+      if (widget.levelType != practiceLevel) {
         if (mounted) {
           _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
           _levelIndex++;
@@ -152,7 +153,7 @@ class _SubstractionState extends State<Substraction> {
         stopProgress();
         if (_record > currentRecord) {
           globalRecord = _record;
-          updateRecordDatabase(_record, _service, _gameRecord!);
+          updateRecordDatabase(_record);
         }
         alertDialog.showCustomModalBottomSheet(
           context,
@@ -168,7 +169,11 @@ class _SubstractionState extends State<Substraction> {
     if (mounted) {
       setState(() {
         _levelCounter++;
-        if (_levelCounter > _levelUpAt && _levelIndex <= 5) {
+        if (_levelCounter > _levelUpAt &&
+            _levelIndex <= 5 &&
+            widget.levelType != practiceLevel) {
+          _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
+              true;
           _levelUp(_levelIndex);
         }
         _getRandom();
@@ -185,7 +190,7 @@ class _SubstractionState extends State<Substraction> {
         stopProgress();
         if (_record > currentRecord) {
           globalRecord = _record;
-          updateRecordDatabase(_record, _service, _gameRecord!);
+          updateRecordDatabase(_record);
         }
         alertDialog.showCustomModalBottomSheet(
           context,
@@ -197,12 +202,12 @@ class _SubstractionState extends State<Substraction> {
     }
   }
 
-  void updateRecordDatabase(int currentRecord,
-      DatabaseService service,
-      Map<String, String> gameRecord,) async {
-    if (widget.levelType != customLevel) {
-      gameRecord.update(_gameType, (record) => currentRecord.toString());
-      await service.updateUserRecord(gameRecord);
+  void updateRecordDatabase(int currentRecord) async {
+    if (widget.levelType != practiceLevel) {
+      _selectedGameRecord.record = currentRecord.toString();
+      Map<String, GameRecord>? data = _streamUserRecord.gameRecord;
+      data?.update(_gameType, (update) => _selectedGameRecord);
+      await _service.updateUserRecord(data!);
     }
   }
 
@@ -280,18 +285,18 @@ class _SubstractionState extends State<Substraction> {
                   onPressed: _isButtonDisabled
                       ? null
                       : () {
-                    setState(() {
-                      if (_progressValue >= 1.0) {
-                        _handleTimeOver();
-                      } else {
-                        if (_firstValue - _secondValue != _total) {
-                          _handleNewHighScore();
-                        } else {
-                          _handleNotHighScore();
-                        }
-                      }
-                    });
-                  },
+                          setState(() {
+                            if (_progressValue >= 1.0) {
+                              _handleTimeOver();
+                            } else {
+                              if (_firstValue - _secondValue != _total) {
+                                _handleNewHighScore();
+                              } else {
+                                _handleNotHighScore();
+                              }
+                            }
+                          });
+                        },
                   icon: Icon(Icons.close, size: 60),
                 ),
                 SizedBox(width: 60),
@@ -299,18 +304,18 @@ class _SubstractionState extends State<Substraction> {
                   onPressed: _isButtonDisabled
                       ? null
                       : () {
-                    setState(() {
-                      if (_progressValue >= 1.0) {
-                        _handleTimeOver();
-                      } else {
-                        if (_firstValue - _secondValue == _total) {
-                          _handleNewHighScore();
-                        } else {
-                          _handleNotHighScore();
-                        }
-                      }
-                    });
-                  },
+                          setState(() {
+                            if (_progressValue >= 1.0) {
+                              _handleTimeOver();
+                            } else {
+                              if (_firstValue - _secondValue == _total) {
+                                _handleNewHighScore();
+                              } else {
+                                _handleNotHighScore();
+                              }
+                            }
+                          });
+                        },
                   icon: Icon(Icons.check_circle, size: 60),
                 ),
               ],
@@ -326,46 +331,46 @@ class _SubstractionState extends State<Substraction> {
             SizedBox(height: 20),
             currentRecord >= _record
                 ? Column(
-              children: [
-                Text(
-                  GameOutputTexts.personalBest,
-                  style: TextStyle(
-                    color: Colors.blueGrey,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  "$currentRecord",
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            )
+                    children: [
+                      Text(
+                        GameOutputTexts.personalBest,
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "$currentRecord",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  )
                 : Column(
-              children: [
-                Text(
-                  GameOutputTexts.congratsMsg,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
+                    children: [
+                      Text(
+                        GameOutputTexts.congratsMsg,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "$_record",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  "$_record",
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),

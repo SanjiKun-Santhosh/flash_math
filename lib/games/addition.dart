@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flash_math/game_algorithm/number_generator.dart';
+import 'package:flash_math/models/game_record.dart';
 import 'package:flash_math/services/database.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,7 @@ class Addition extends StatefulWidget {
 
   const Addition({
     super.key,
-    this.levelType=customLevel,
+    this.levelType = practiceLevel,
     this.timerSetting = defaultTimerSetting,
     this.min = minimumForRandomGen,
     this.max = maximumForRandomGen,
@@ -44,7 +45,10 @@ class _AdditionState extends State<Addition> {
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();
   late final DatabaseService _service;
-  late final Map<String, String>? _gameRecord;
+  late final GameRecord _selectedGameRecord;
+  late final UserRecord _streamUserRecord;
+
+  //late final List<String> _userGameRecordsKeyList;
   bool _isInitialized = false;
 
   @override
@@ -62,16 +66,18 @@ class _AdditionState extends State<Addition> {
       return;
     }
     _service = DatabaseService(uid: userRecord.uid);
-    if (widget.levelType == customLevel) {
+    if (widget.levelType == practiceLevel) {
       _timerSpeed = widget.timerSetting;
       _levelIndex = 0;
-      _gameRecord = {};
+      _selectedGameRecord = gameTypesInitialisation(_gameType);
     } else {
       _timerSpeed = int.parse(levelList[widget.levelType]!);
       _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
-      _gameRecord = userRecord.gameRecord;
+      _selectedGameRecord = userRecord.gameRecord![_gameType]!;
     }
-    currentRecord = globalRecord = int.parse(_gameRecord?[_gameType] ?? "0");
+    _streamUserRecord = userRecord;
+    //_userGameRecordsKeyList=gameTypeObjectList;
+    currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
     _levelUpAt = defaultLevelUpAt;
     _min = widget.min;
     _max = widget.max;
@@ -125,7 +131,7 @@ class _AdditionState extends State<Addition> {
 
   void _levelUp(int levelIndex) {
     setState(() {
-      if (widget.levelType != customLevel) {
+      if (widget.levelType != practiceLevel) {
         if (mounted) {
           _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
           _levelIndex++;
@@ -142,7 +148,7 @@ class _AdditionState extends State<Addition> {
         stopProgress();
         if (_record > currentRecord) {
           globalRecord = _record;
-          updateRecordDatabase(_record, _service, _gameRecord!);
+          updateRecordDatabase(_record);
         }
         alertDialog.showCustomModalBottomSheet(
           context,
@@ -158,7 +164,11 @@ class _AdditionState extends State<Addition> {
     if (mounted) {
       setState(() {
         _levelCounter++;
-        if (_levelCounter > _levelUpAt && _levelIndex <= 5) {
+        if (_levelCounter > _levelUpAt &&
+            _levelIndex <= 5 &&
+            widget.levelType != practiceLevel) {
+          _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
+              true;
           _levelUp(_levelIndex);
         }
         _getRandom();
@@ -175,7 +185,7 @@ class _AdditionState extends State<Addition> {
         stopProgress();
         if (_record > currentRecord) {
           globalRecord = _record;
-          updateRecordDatabase(_record, _service, _gameRecord!);
+          updateRecordDatabase(_record);
         }
         alertDialog.showCustomModalBottomSheet(
           context,
@@ -193,14 +203,12 @@ class _AdditionState extends State<Addition> {
     super.dispose();
   }
 
-  void updateRecordDatabase(
-      int currentRecord,
-      DatabaseService service,
-      Map<String, String> gameRecord,
-      ) async {
-    if (widget.levelType != customLevel) {
-      gameRecord.update(_gameType, (record) => currentRecord.toString());
-      await service.updateUserRecord(gameRecord);
+  void updateRecordDatabase(int currentRecord) async {
+    if (widget.levelType != practiceLevel) {
+      _selectedGameRecord.record = currentRecord.toString();
+      Map<String, GameRecord>? data = _streamUserRecord.gameRecord;
+      data?.update(_gameType, (update) => _selectedGameRecord);
+      await _service.updateUserRecord(data!);
     }
   }
 
@@ -278,16 +286,16 @@ class _AdditionState extends State<Addition> {
                   onPressed: _isButtonDisabled
                       ? null
                       : () {
-                    if (_progressValue >= 1.0) {
-                      _handleTimeOver();
-                    } else {
-                      if (_firstValue + _secondValue != _total) {
-                        _handleNewHighScore();
-                      } else {
-                        _handleNotHighScore();
-                      }
-                    }
-                  },
+                          if (_progressValue >= 1.0) {
+                            _handleTimeOver();
+                          } else {
+                            if (_firstValue + _secondValue != _total) {
+                              _handleNewHighScore();
+                            } else {
+                              _handleNotHighScore();
+                            }
+                          }
+                        },
                   icon: Icon(Icons.close, size: 60),
                 ),
                 SizedBox(width: 60),
@@ -295,16 +303,16 @@ class _AdditionState extends State<Addition> {
                   onPressed: _isButtonDisabled
                       ? null
                       : () {
-                    if (_progressValue >= 1.0) {
-                      _handleTimeOver();
-                    } else {
-                      if (_firstValue + _secondValue == _total) {
-                        _handleNewHighScore();
-                      } else {
-                        _handleNotHighScore();
-                      }
-                    }
-                  },
+                          if (_progressValue >= 1.0) {
+                            _handleTimeOver();
+                          } else {
+                            if (_firstValue + _secondValue == _total) {
+                              _handleNewHighScore();
+                            } else {
+                              _handleNotHighScore();
+                            }
+                          }
+                        },
                   icon: Icon(Icons.check_circle, size: 60),
                 ),
               ],
@@ -320,46 +328,46 @@ class _AdditionState extends State<Addition> {
             SizedBox(height: 20),
             currentRecord >= _record
                 ? Column(
-              children: [
-                Text(
-                  GameOutputTexts.personalBest,
-                  style: TextStyle(
-                    color: Colors.blueGrey,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  "$currentRecord",
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            )
+                    children: [
+                      Text(
+                        GameOutputTexts.personalBest,
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "$currentRecord",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  )
                 : Column(
-              children: [
-                Text(
-                  GameOutputTexts.congratsMsg,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
+                    children: [
+                      Text(
+                        GameOutputTexts.congratsMsg,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "$_record",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  "$_record",
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),

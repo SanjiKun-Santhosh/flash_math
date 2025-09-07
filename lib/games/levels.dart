@@ -1,11 +1,13 @@
 import 'package:flash_math/games/complex.dart';
 import 'package:flash_math/games/flash.dart';
 import 'package:flash_math/games/substraction.dart';
+import 'package:flash_math/models/game_record.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user.dart';
+import '../models/user_record.dart';
 import '../services/hive_Service.dart';
 import 'addition.dart';
 import 'custom_level.dart';
@@ -20,15 +22,25 @@ class Levels extends StatefulWidget {
 }
 
 class _LevelsState extends State<Levels> {
+  Map<String, bool>? _gameLevelList;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mathUser = context.read<MathUser?>();
-
+      final userRecord = context.read<UserRecord?>();
       if (mathUser != null) {
         context.read<HiveService>().loadProfileImage(mathUser.uid);
+      }
+
+      if (userRecord != null) {
+        GameRecord? record =
+            userRecord.gameRecord?[widget.gameType.toLowerCase()];
+        _gameLevelList = record?.gameData ?? {};
+      } else {
+        _gameLevelList = {};
       }
     });
   }
@@ -53,7 +65,6 @@ class _LevelsState extends State<Levels> {
   @override
   Widget build(BuildContext context) {
     final hiveService = context.watch<HiveService>();
-
     return Template(
       child: Scaffold(
         appBar: AppBar(
@@ -85,6 +96,7 @@ class _LevelsState extends State<Levels> {
             margin: const EdgeInsets.all(15),
             child: Column(
               children: levelList.keys.map((level) {
+                bool levelBool = _gameLevelList?[level] ?? false;
                 return Column(
                   children: [
                     Card(
@@ -97,30 +109,36 @@ class _LevelsState extends State<Levels> {
                       color: const Color(0xFFeaf4f4),
                       clipBehavior: Clip.hardEdge,
                       child: TextButton(
-                        onPressed: () {
-                          if (level == customLevel) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (BuildContext context) =>
-                                    CustomLevel(gameType: widget.gameType),
-                              ),
-                            );
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (BuildContext context) =>
-                                    _selectGameWidget(level),
-                              ),
-                            );
-                          }
-                        },
+                        onPressed: levelBool
+                            ? () {
+                                if (level == practiceLevel) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute<void>(
+                                      builder: (BuildContext context) =>
+                                          CustomLevel(
+                                            gameType: widget.gameType,
+                                          ),
+                                    ),
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute<void>(
+                                      builder: (BuildContext context) =>
+                                          _selectGameWidget(level),
+                                    ),
+                                  );
+                                }
+                              }
+                            : null,
 
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.lock),
+                            levelBool
+                                ? Icon(Icons.lock_open_outlined,color: Colors.black,size: 25,)
+                                : Icon(Icons.lock,size: 25,),
                             SizedBox(width: 20),
                             Text(
                               level,

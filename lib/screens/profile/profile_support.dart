@@ -1,6 +1,7 @@
+import 'package:flash_math/models/game_record.dart';
 import 'package:flutter/material.dart';
 class RecordBottomSheet{
-  void showCustomModalBottomSheet(BuildContext context, {required Map<String, String> gameRecord}) {
+  void showCustomModalBottomSheet(BuildContext context, {required Map<String, GameRecord> gameRecord}) {
     showModalBottomSheet(
       elevation: 2.0,
       isDismissible: false,
@@ -45,7 +46,7 @@ class RecordBottomSheet{
                           Text("${entry.key}: ",style: TextStyle(
                             fontSize: 30,
                           ),),
-                          Text(entry.value,style: TextStyle(
+                          Text(entry.value.record,style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.normal,
 

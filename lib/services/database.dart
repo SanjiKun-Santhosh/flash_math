@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flash_math/models/game_record.dart';
 import 'package:flash_math/models/user_record.dart';
 
 class DatabaseService {
@@ -9,23 +10,29 @@ class DatabaseService {
   final CollectionReference mathCollections = FirebaseFirestore.instance
       .collection("math_users");
 
-  Future addUserData(String name, Map<String, String> gameRecord) async {
+  Future addUserData(String name, Map<String, GameRecord> gameRecord) async {
+    final dataToWrite = gameRecord.map(
+      (key, value) => MapEntry(key, value.toJson()),
+    );
     return await mathCollections.doc(uid).set({
       "name": name,
-      "gameRecord": gameRecord,
+      "gameRecord": dataToWrite,
     });
   }
 
-  Future updateUserRecord(Map<String, String> gameRecord) async {
-    return await mathCollections.doc(uid).update({"gameRecord": gameRecord});
+  Future updateUserRecord(Map<String, GameRecord> gameRecord) async {
+    final dataToUpdate = gameRecord.map(
+      (key, value) => MapEntry(key, value.toJson()),
+    );
+    return await mathCollections.doc(uid).update({"gameRecord": dataToUpdate});
   }
 
   Future updateName(String name) async {
     return await mathCollections.doc(uid).update({"name": name});
   }
 
-  Future <UserRecord?> userDataForProfile() async {
-    final snapshot=await mathCollections.doc(uid).get();
+  Future<UserRecord?> userDataForProfile() async {
+    final snapshot = await mathCollections.doc(uid).get();
     if (snapshot.exists) {
       return _userDataFromSnapshots(snapshot);
     } else {
@@ -35,13 +42,17 @@ class DatabaseService {
 
   UserRecord _userDataFromSnapshots(DocumentSnapshot snapshot) {
     Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
-    Map<String, String>? gameRecordMap;
+    Map<String, GameRecord>? gameRecordMap = {};
     if (data != null && data["gameRecord"] != null) {
-      gameRecordMap = Map<String, String>.from(data["gameRecord"] as Map);
+      final rawData = Map<String, dynamic>.from(data["gameRecord"] as Map);
+      gameRecordMap = rawData.map(
+        (key, value) =>
+            MapEntry(key, GameRecord.fromJson(value as Map<String, dynamic>)),
+      );
     }
     return UserRecord(
       uid: uid,
-      name: data?["name"] ?? "",
+      name: data?["name"] ?? "Player",
       gameRecord: gameRecordMap,
     );
   }

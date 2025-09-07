@@ -137,6 +137,7 @@ class Auth {
     try {
       await _googleSignIn.signOut();
       await _auth.signOut();
+      _userFromFireBase(null);
     } catch (e) {
       return;
     }

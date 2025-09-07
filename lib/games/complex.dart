@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../game_algorithm/number_generator.dart';
+import '../models/game_record.dart';
 import '../models/user_record.dart';
 import '../screens/custom_sheets.dart';
 import '../services/database.dart';
 import '../shared/constants.dart';
+
 class Complex extends StatefulWidget {
   final String levelType;
   final int min;
@@ -16,7 +18,7 @@ class Complex extends StatefulWidget {
 
   const Complex({
     super.key,
-    this.levelType = customLevel,
+    this.levelType = practiceLevel,
     this.timerSetting = defaultTimerSetting,
     this.min = minimumForRandomGen,
     this.max = maximumForRandomGen,
@@ -45,10 +47,11 @@ class _ComplexState extends State<Complex> {
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();
   late final DatabaseService _service;
-  late final Map<String, String>? _gameRecord;
+  late final GameRecord _selectedGameRecord;
+  late final UserRecord _streamUserRecord;
   bool _isInitialized = false;
   final Random _rand = Random();
-  GameTypes _currentOperation=GameTypes.addition;
+  GameTypes _currentOperation = GameTypes.addition;
 
   @override
   void initState() {
@@ -65,16 +68,17 @@ class _ComplexState extends State<Complex> {
       return;
     }
     _service = DatabaseService(uid: userRecord.uid);
-    if (widget.levelType == customLevel) {
+    if (widget.levelType == practiceLevel) {
       _timerSpeed = widget.timerSetting;
       _levelIndex = 0;
-      _gameRecord = {};
+      _selectedGameRecord = gameTypesInitialisation(_gameType);
     } else {
       _timerSpeed = int.parse(levelList[widget.levelType]!);
       _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
-      _gameRecord = userRecord.gameRecord;
+      _selectedGameRecord = userRecord.gameRecord![_gameType]!;
     }
-    currentRecord = globalRecord = int.parse(_gameRecord?[_gameType] ?? "0");
+    _streamUserRecord = userRecord;
+    currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
     _levelUpAt = defaultLevelUpAt;
     _min = widget.min;
     _max = widget.max;
@@ -133,7 +137,7 @@ class _ComplexState extends State<Complex> {
 
   void _levelUp(int levelIndex) {
     setState(() {
-      if (widget.levelType != customLevel) {
+      if (widget.levelType != practiceLevel) {
         if (mounted) {
           _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
           _levelIndex++;
@@ -150,7 +154,7 @@ class _ComplexState extends State<Complex> {
         stopProgress();
         if (_record > currentRecord) {
           globalRecord = _record;
-          updateRecordDatabase(_record, _service, _gameRecord!);
+          updateRecordDatabase(_record);
         }
         alertDialog.showCustomModalBottomSheet(
           context,
@@ -167,18 +171,22 @@ class _ComplexState extends State<Complex> {
       _handleTimeOver();
       return;
     }
-    final bool isEquationCorrect =
-    _currentOperation == GameTypes.addition
+    final bool isEquationCorrect = _currentOperation == GameTypes.addition
         ? (_firstValue + _secondValue == _total)
         : (_firstValue - _secondValue == _total);
     if (userThinksEquationIsCorrect == isEquationCorrect) {
       _record++;
       _levelCounter++;
-      if (_levelCounter > _levelUpAt && _levelIndex <= 5) {
+      if (_levelCounter > _levelUpAt &&
+          _levelIndex <= 5 &&
+          widget.levelType != practiceLevel) {
+        _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
+            true;
         _levelUp(_levelIndex);
       }
-      final nextOperation =
-      _rand.nextBool() ? GameTypes.addition : GameTypes.substraction;
+      final nextOperation = _rand.nextBool()
+          ? GameTypes.addition
+          : GameTypes.substraction;
       _getRandom(nextOperation);
       resetProgress();
       setState(() {
@@ -196,7 +204,7 @@ class _ComplexState extends State<Complex> {
         stopProgress();
         if (_record > currentRecord) {
           globalRecord = _record;
-          updateRecordDatabase(_record, _service, _gameRecord!);
+          updateRecordDatabase(_record);
         }
         alertDialog.showCustomModalBottomSheet(
           context,
@@ -214,17 +222,14 @@ class _ComplexState extends State<Complex> {
     super.dispose();
   }
 
-  void updateRecordDatabase(
-    int currentRecord,
-    DatabaseService service,
-    Map<String, String> gameRecord,
-  ) async {
-    if (widget.levelType != customLevel) {
-      gameRecord.update(_gameType, (record) => currentRecord.toString());
-      await service.updateUserRecord(gameRecord);
+  void updateRecordDatabase(int currentRecord) async {
+    if (widget.levelType != practiceLevel) {
+      _selectedGameRecord.record = currentRecord.toString();
+      Map<String, GameRecord>? data = _streamUserRecord.gameRecord;
+      data?.update(_gameType, (update) => _selectedGameRecord);
+      await _service.updateUserRecord(data!);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -264,9 +269,11 @@ class _ComplexState extends State<Complex> {
                               _firstValue.toString(),
                               style: TextStyle(fontSize: 40),
                             ),
-                            Icon(_currentOperation == GameTypes.addition
-                                ? Icons.add
-                                : Icons.remove),
+                            Icon(
+                              _currentOperation == GameTypes.addition
+                                  ? Icons.add
+                                  : Icons.remove,
+                            ),
                             Text(
                               _secondValue.toString(),
                               style: TextStyle(fontSize: 40),
@@ -299,12 +306,16 @@ class _ComplexState extends State<Complex> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(false),
+                  onPressed: _isButtonDisabled
+                      ? null
+                      : () => _submitAnswer(false),
                   icon: const Icon(Icons.close, size: 60),
                 ),
                 const SizedBox(width: 60),
                 IconButton(
-                  onPressed: _isButtonDisabled ? null : () => _submitAnswer(true),
+                  onPressed: _isButtonDisabled
+                      ? null
+                      : () => _submitAnswer(true),
                   icon: const Icon(Icons.check_circle, size: 60),
                 ),
               ],

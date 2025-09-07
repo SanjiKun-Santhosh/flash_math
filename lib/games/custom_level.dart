@@ -25,21 +25,21 @@ class _CustomLevelState extends State<CustomLevel> {
     switch (widget.gameType) {
       case "Addition":
         return Addition(
-          levelType: customLevel,
+          levelType: practiceLevel,
           min: _min,
           max: _max,
           timerSetting: _timer,
         );
       case "Substraction":
         return Substraction(
-          levelType: customLevel,
+          levelType: practiceLevel,
           min: _min,
           max: _max,
           timerSetting: _timer,
         );
       case "Complex":
         return Complex(
-          levelType: customLevel,
+          levelType: practiceLevel,
           min: _min,
           max: _max,
           timerSetting: _timer,

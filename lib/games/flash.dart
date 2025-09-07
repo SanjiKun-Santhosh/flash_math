@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../game_algorithm/number_generator.dart';
+import '../models/game_record.dart';
 import '../models/user_record.dart';
 import '../screens/custom_sheets.dart';
 import '../services/database.dart';
@@ -19,7 +20,7 @@ class Flash extends StatefulWidget {
 
   const Flash({
     super.key,
-    this.levelType = customLevel,
+    this.levelType = practiceLevel,
     this.timerSetting = defaultTimerSetting,
     this.min = minimumForRandomGen,
     this.max = maximumForRandomGen,
@@ -48,7 +49,8 @@ class _FlashState extends State<Flash> {
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();
   late final DatabaseService _service;
-  late final Map<String, String>? _gameRecord;
+  late final GameRecord _selectedGameRecord;
+  late final UserRecord _streamUserRecord;
   bool _isInitialized = false;
   final Random _rand = Random();
   GameTypes _currentOperation = GameTypes.addition;
@@ -69,16 +71,17 @@ class _FlashState extends State<Flash> {
       return;
     }
     _service = DatabaseService(uid: userRecord.uid);
-    if (widget.levelType == customLevel) {
+    if (widget.levelType == practiceLevel) {
       _timerSpeed = widget.timerSetting;
       _levelIndex = 0;
-      _gameRecord = {};
+      _selectedGameRecord = gameTypesInitialisation(_gameType);
     } else {
       _timerSpeed = int.parse(levelList[widget.levelType]!);
       _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
-      _gameRecord = userRecord.gameRecord;
+      _selectedGameRecord = userRecord.gameRecord![_gameType]!;
     }
-    currentRecord = globalRecord = int.parse(_gameRecord?[_gameType] ?? "0");
+    _streamUserRecord = userRecord;
+    currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
     _levelUpAt = defaultLevelUpAt;
     _min = widget.min;
     _max = widget.max;
@@ -139,7 +142,7 @@ class _FlashState extends State<Flash> {
 
   void _levelUp(int levelIndex) {
     setState(() {
-      if (widget.levelType != customLevel) {
+      if (widget.levelType != practiceLevel) {
         if (mounted) {
           _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
           _levelIndex++;
@@ -156,7 +159,7 @@ class _FlashState extends State<Flash> {
         stopProgress();
         if (_record > currentRecord) {
           globalRecord = _record;
-          updateRecordDatabase(_record, _service, _gameRecord!);
+          updateRecordDatabase(_record);
         }
         alertDialog.showCustomModalBottomSheet(
           context,
@@ -179,7 +182,11 @@ class _FlashState extends State<Flash> {
     if (userThinksEquationIsCorrect == isEquationCorrect) {
       _record++;
       _levelCounter++;
-      if (_levelCounter > _levelUpAt && _levelIndex <= 5) {
+      if (_levelCounter > _levelUpAt &&
+          _levelIndex <= 5 &&
+          widget.levelType != practiceLevel) {
+        _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
+            true;
         _levelUp(_levelIndex);
       }
       final nextOperation = _rand.nextBool()
@@ -203,7 +210,7 @@ class _FlashState extends State<Flash> {
         stopProgress();
         if (_record > currentRecord) {
           globalRecord = _record;
-          updateRecordDatabase(_record, _service, _gameRecord!);
+          updateRecordDatabase(_record);
         }
         alertDialog.showCustomModalBottomSheet(
           context,
@@ -221,14 +228,12 @@ class _FlashState extends State<Flash> {
     super.dispose();
   }
 
-  void updateRecordDatabase(
-    int currentRecord,
-    DatabaseService service,
-    Map<String, String> gameRecord,
-  ) async {
-    if (widget.levelType != customLevel) {
-      gameRecord.update(_gameType, (record) => currentRecord.toString());
-      await service.updateUserRecord(gameRecord);
+  void updateRecordDatabase(int currentRecord) async {
+    if (widget.levelType != practiceLevel) {
+      _selectedGameRecord.record = currentRecord.toString();
+      Map<String, GameRecord>? data = _streamUserRecord.gameRecord;
+      data?.update(_gameType, (update) => _selectedGameRecord);
+      await _service.updateUserRecord(data!);
     }
   }
 

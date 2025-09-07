@@ -7,6 +7,7 @@ import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import '../../models/game_record.dart';
 import '../../models/user.dart';
 import '../../services/hive_Service.dart';
 
@@ -31,26 +32,25 @@ class _UserProfileState extends State<UserProfile> {
   final RegExp _passwordRegex = RegExp(
     r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;\$\~])',
   );
-  final Map<String, String> _updatedGameRecord = Map<String, String>.from(
-    gameRecordInitialization,
-  );
+  final Map<String, GameRecord> _updatedGameRecord =
+      Map<String, GameRecord>.from(gameRecordInitialization);
 
   @override
   void initState() {
     super.initState();
-    final userRecord = context.read<UserRecord?>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mathUser = context.read<MathUser?>();
-
+      final userRecord = context.read<UserRecord?>();
       if (mathUser != null) {
         context.read<HiveService>().loadProfileImage(mathUser.uid);
       }
+      if (userRecord != null && _textNameController.text.isEmpty) {
+        _textNameController.text = userRecord.name.isEmpty
+            ? "Player"
+            : userRecord.name;
+      }
     });
-    if (userRecord != null && _textNameController.text.isEmpty) {
-      _textNameController.text = userRecord.name.isEmpty
-          ? "Player"
-          : userRecord.name;
-    }
 
     if (_textEmailController.text.isEmpty) {
       _auth.getEmail().then((email) {
@@ -229,14 +229,19 @@ class _UserProfileState extends State<UserProfile> {
                                 children: [
                                   ElevatedButton(
                                     onPressed: () {
+                                      var gameData =
+                                          userRecord?.gameRecord ??
+                                          gameRecordInitialization;
                                       for (var key in _updatedGameRecord.keys) {
-                                        String? val =
-                                            userRecord?.gameRecord![key];
-                                        if (userRecord?.gameRecord![key] ==
-                                            null) {
-                                          _updatedGameRecord[key] = "0";
+                                        if (gameData[key] == null) {
+                                          _updatedGameRecord[key] =
+                                              gameTypesInitialisation(key);
                                         } else {
-                                          _updatedGameRecord[key] = val!;
+                                          _updatedGameRecord[key] =
+                                              gameData[key]!;
+                                          print(
+                                            _updatedGameRecord[key]?.gameType,
+                                          );
                                         }
                                       }
                                       recordBottomSheet
