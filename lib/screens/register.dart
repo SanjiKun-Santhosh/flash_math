@@ -46,161 +46,163 @@ class _RegisterState extends State<Register> {
                 borderRadius: BorderRadius.circular(30),
               ),
             ),
-            body: Container(
-              padding: EdgeInsets.symmetric(vertical: 30, horizontal: 30),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 50),
-                    Text(
-                      textAlign: TextAlign.center,
-                      "Welcome New User!",
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontFamily: CustomFontStyle().primaryFont,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 50),
-                    TextFormField(
-                      initialValue: "Email",
-                      onChanged: (val) {
-                        setState(() {
-                          _currentEmail = val;
-                        });
-                      },
-                      validator: (val) {
-                        if (val == null || val.isEmpty) {
-                          return "The email is empty";
-                        } else {
-                          if (val.contains("@") &&
-                              val.contains(".") &&
-                              val.length > 5) {
-                            return null;
-                          } else {
-                            return "The email is incorrect";
-                          }
-                        }
-                      },
-                      decoration: AppDecoration().textDecoration,
-                    ),
-
-                    SizedBox(height: 50),
-                    TextFormField(
-                      initialValue: "Password",
-                      obscureText: true,
-                      obscuringCharacter: "*",
-                      onChanged: (val) {
-                        setState(() {
-                          _currentPassword = val;
-                        });
-                      },
-                      validator: (val) {
-                        if (val!.isEmpty) {
-                          return "The Password is empty";
-                        } else {
-                          if (!_regex.hasMatch(val)) {
-                            return ErrorMsg().passwordErrorMsg;
-                          } else {
-                            return null;
-                          }
-                        }
-                      },
-                      decoration: AppDecoration().textDecoration,
-                    ),
-                    SizedBox(height: 50),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        if (formKey.currentState!.validate()) {
-                          setState(() {
-                            _loading = !_loading;
-                          });
-                          dynamic result = await _auth
-                              .registerWithEmailAndPassword(
-                                _currentEmail,
-                                _currentPassword,
-                              );
-                        }
-                      },
-
-                      label: Text(
-                        "Register",
+            body: SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 30, horizontal: 30),
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 50),
+                      Text(
                         textAlign: TextAlign.center,
+                        "Welcome New User!",
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 30,
                           fontFamily: CustomFontStyle().primaryFont,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      icon: Icon(
-                        Icons.login_outlined,
-                        color: Colors.black87,
-                        size: 20,
+                      SizedBox(height: 50),
+                      TextFormField(
+                        initialValue: "Email",
+                        onChanged: (val) {
+                          setState(() {
+                            _currentEmail = val;
+                          });
+                        },
+                        validator: (val) {
+                          if (val == null || val.isEmpty) {
+                            return "The email is empty";
+                          } else {
+                            if (val.contains("@") &&
+                                val.contains(".") &&
+                                val.length > 5) {
+                              return null;
+                            } else {
+                              return "The email is incorrect";
+                            }
+                          }
+                        },
+                        decoration: AppDecoration().textDecoration,
                       ),
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Already have an account?",
+              
+                      SizedBox(height: 50),
+                      TextFormField(
+                        initialValue: "Password",
+                        obscureText: true,
+                        obscuringCharacter: "*",
+                        onChanged: (val) {
+                          setState(() {
+                            _currentPassword = val;
+                          });
+                        },
+                        validator: (val) {
+                          if (val!.isEmpty) {
+                            return "The Password is empty";
+                          } else {
+                            if (!_regex.hasMatch(val)) {
+                              return ErrorMsg().passwordErrorMsg;
+                            } else {
+                              return null;
+                            }
+                          }
+                        },
+                        decoration: AppDecoration().textDecoration,
+                      ),
+                      SizedBox(height: 50),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          if (formKey.currentState!.validate()) {
+                            setState(() {
+                              _loading = !_loading;
+                            });
+                            dynamic result = await _auth
+                                .registerWithEmailAndPassword(
+                                  _currentEmail,
+                                  _currentPassword,
+                                );
+                          }
+                        },
+              
+                        label: Text(
+                          "Register",
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 20,
                             fontFamily: CustomFontStyle().primaryFont,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              widget.toggleView();
-                            });
-                          },
-                          child: Text(
-                            "Login",
+                        icon: Icon(
+                          Icons.login_outlined,
+                          color: Colors.black87,
+                          size: 20,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Already have an account?",
                             style: TextStyle(
-                              color: Colors.deepOrangeAccent,
                               fontSize: 20,
                               fontFamily: CustomFontStyle().primaryFont,
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 30),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        IconButton(
-                          onPressed: () {},
-                          icon: FaIcon(FontAwesomeIcons.facebook),
-                          iconSize: 40,
-                        ),
-                        IconButton(
-                          onPressed: () {},
-                          icon: FaIcon(FontAwesomeIcons.instagram),
-                          iconSize: 40,
-                        ),
-                        IconButton(
-                          onPressed: () async{
-                            dynamic result = await _auth.signInWithGoogle();
-                            if (!mounted) return;
-                            setState(() {
-                              if (result == null ||
-                                  result.toString().contains("error")) {
-                                CustomSheets().showLoginErrorDialog(context);
-                              } else {}
-                            });
-                          },
-                          icon: FaIcon(FontAwesomeIcons.google),
-                          iconSize: 40,
-                        ),
-                      ],
-                    ),
-                  ],
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                widget.toggleView();
+                              });
+                            },
+                            child: Text(
+                              "Login",
+                              style: TextStyle(
+                                color: Colors.deepOrangeAccent,
+                                fontSize: 20,
+                                fontFamily: CustomFontStyle().primaryFont,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 30),
+              
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          IconButton(
+                            onPressed: () {},
+                            icon: FaIcon(FontAwesomeIcons.facebook),
+                            iconSize: 40,
+                          ),
+                          IconButton(
+                            onPressed: () {},
+                            icon: FaIcon(FontAwesomeIcons.instagram),
+                            iconSize: 40,
+                          ),
+                          IconButton(
+                            onPressed: () async{
+                              dynamic result = await _auth.signInWithGoogle();
+                              if (!mounted) return;
+                              setState(() {
+                                if (result == null ||
+                                    result.toString().contains("error")) {
+                                  CustomSheets().showLoginErrorDialog(context);
+                                } else {}
+                              });
+                            },
+                            icon: FaIcon(FontAwesomeIcons.google),
+                            iconSize: 40,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

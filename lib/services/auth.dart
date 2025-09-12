@@ -12,6 +12,7 @@ class Auth {
   bool _isGoogleSignInInitialized = false;
   final String _serverClientId =
       "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com";
+
   Auth() {
     _initializeGoogleSignIn();
   }
@@ -28,10 +29,11 @@ class Auth {
     try {
       UserCredential credential = await _auth.signInAnonymously();
       User? user = credential.user;
-      await DatabaseService(uid: user!.uid).addUserData("Player", gameRecordInitialization);
+      await DatabaseService(
+        uid: user!.uid,
+      ).addUserData("Player", gameRecordInitialization);
       return _userFromFireBase(user);
     } catch (e) {
-
       return null;
     }
   }
@@ -85,7 +87,9 @@ class Auth {
         password: password,
       );
       User? user = credential.user;
-      await DatabaseService(uid: user!.uid).addUserData("Player", gameRecordInitialization);
+      await DatabaseService(
+        uid: user!.uid,
+      ).addUserData("Player", gameRecordInitialization);
 
       return _userFromFireBase(user);
     } catch (e) {
@@ -133,11 +137,12 @@ class Auth {
     return user?.uid;
   }
 
-  Future<void> signOut() async {
+  Future<void> signOutMethod() async {
     try {
-      await _googleSignIn.signOut();
+      if (_isGoogleSignInInitialized) {
+        await _googleSignIn.signOut();
+      }
       await _auth.signOut();
-      _userFromFireBase(null);
     } catch (e) {
       return;
     }
@@ -182,8 +187,13 @@ class Auth {
         scopeHint: ['email'],
       );
       final UserCredential userCredential = await _googleSignInSupport(account);
-      final User user = userCredential.user!;
-      await DatabaseService(uid: user.uid).addUserData("Player", gameRecordInitialization);
+      final User? user = userCredential.user;
+      if(await DatabaseService(uid:user!.uid).userData.isEmpty){
+        await DatabaseService(
+          uid: user.uid,
+        ).addUserData("Player", gameRecordInitialization);
+
+      }
 
       return _userFromFireBase(user);
     } on GoogleSignInException catch (e) {
@@ -198,11 +208,12 @@ class Auth {
   }
 
   Future<MathUser?> attemptSilentSignIn() async {
-    _ensureGoogleSignInInitialized();
+    await _ensureGoogleSignInInitialized();
     try {
       final GoogleSignInAccount? account = await _googleSignIn
           .attemptLightweightAuthentication();
-      if (account is Future<GoogleSignInAccount>) {
+      print("try block");
+      if (account == null) {
         final UserCredential userCredential = await _googleSignInSupport(
           account!,
         );
@@ -212,6 +223,7 @@ class Auth {
         return null;
       }
     } catch (e) {
+      print("catch block");
       print("The silent signin has failed! ${e.toString()}");
       return null;
     }

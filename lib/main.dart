@@ -2,7 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flash_math/models/storage_hive_model.dart';
 import 'package:flash_math/models/user.dart';
 import 'package:flash_math/models/user_record.dart';
+import 'package:flash_math/screens/authenticate.dart';
 import 'package:flash_math/screens/home.dart';
+import 'package:flash_math/screens/login.dart';
 import 'package:flash_math/screens/profile/profile.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/screens/wrapper.dart';
@@ -30,14 +32,14 @@ void main() async {
         ),
         StreamProvider<UserRecord?>(
           create: (context) {
-            final mathUser = Provider.of<MathUser?>(context, listen: false);
+            final mathUser = Provider.of<MathUser?>(context);
             return mathUser != null
                 ? DatabaseService(uid: mathUser.uid).userData
-                : const Stream.empty();
+                : Stream.value(null);
           },
           initialData: null,
         ),
-        ChangeNotifierProvider(create: (context){
+         ChangeNotifierProvider(create: (context){
           return HiveService();
         })
       ],

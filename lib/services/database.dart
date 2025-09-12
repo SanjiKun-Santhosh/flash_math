@@ -20,7 +20,8 @@ class DatabaseService {
     });
   }
 
-  Future updateUserRecord(Map<String, GameRecord> gameRecord) async {
+
+ Future updateUserRecord(Map<String, GameRecord> gameRecord) async {
     final dataToUpdate = gameRecord.map(
       (key, value) => MapEntry(key, value.toJson()),
     );

@@ -26,7 +26,6 @@ class _LevelsState extends State<Levels> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mathUser = context.read<MathUser?>();
@@ -40,7 +39,7 @@ class _LevelsState extends State<Levels> {
             userRecord.gameRecord?[widget.gameType.toLowerCase()];
         _gameLevelList = record?.gameData ?? {};
       } else {
-        _gameLevelList = {};
+        _gameLevelList = gameTypesInitialisation(widget.gameType.toLowerCase()).gameData;
       }
     });
   }

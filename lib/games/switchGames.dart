@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 class SwitchGames extends StatefulWidget {
   final String gameChosen;
+
   const SwitchGames({super.key, required this.gameChosen});
 
   @override
@@ -15,22 +16,33 @@ class SwitchGames extends StatefulWidget {
 
 class _SwitchGamesState extends State<SwitchGames> {
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userRecord = context.read<UserRecord?>();
+      if (userRecord != null) {
+        print("object ${userRecord.name}");
+      }
+    });
+  }
+  @override
   Widget build(BuildContext context) {
     final userRecord = context.watch<UserRecord?>();
-    if(userRecord!=null){
-     switch (widget.gameChosen) {
-      case "Addition":
-        return Levels(gameType: widget.gameChosen);
-      case "Substraction":
-        return Levels(gameType: widget.gameChosen);
-       case "Complex":
-         return Levels(gameType: widget.gameChosen);
-       case "Flash":
-         return Levels(gameType: widget.gameChosen);
-      default:
-        return const Template(child: Loading());
-    }}
-    else{
+    if (userRecord != null) {
+      switch (widget.gameChosen) {
+        case "Addition":
+          return Levels(gameType: widget.gameChosen);
+        case "Substraction":
+          return Levels(gameType: widget.gameChosen);
+        case "Complex":
+          return Levels(gameType: widget.gameChosen);
+        case "Flash":
+          return Levels(gameType: widget.gameChosen);
+        default:
+          return const Template(child: Loading());
+      }
+    } else {
       return const Template(child: Loading());
     }
   }
