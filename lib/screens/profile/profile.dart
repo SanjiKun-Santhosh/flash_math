@@ -24,10 +24,12 @@ class _UserProfileState extends State<UserProfile> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _textEmailController = TextEditingController();
   final TextEditingController _textNameController = TextEditingController();
-  String _newPassword = "";
+  final TextEditingController _textPasswordController = TextEditingController();
   bool _loading = false;
   bool _showPassword = false;
-  bool _valueChanged = false;
+  bool _nameChanged = false;
+  bool _emailChanged = false;
+  bool _passwordChanged = false;
   final RecordBottomSheet recordBottomSheet = RecordBottomSheet();
   final RegExp _passwordRegex = RegExp(
     r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;\$\~])',
@@ -85,14 +87,22 @@ class _UserProfileState extends State<UserProfile> {
     setState(() => _loading = true);
 
     try {
-      await _auth.updateUserEmailAndPassword(
-        _textEmailController.text,
-        _newPassword,
-      );
-      await _auth.updateName(_textNameController.text);
+      if (_nameChanged) {
+        await _auth.updateName(_textNameController.text);
+      }
+      if (_emailChanged && _passwordChanged) {
+        await _auth.updateUserEmailAndPassword(
+          _textEmailController.text,
+          _textPasswordController.text,
+        );
+      }
+      if (_passwordChanged) {
+        await _auth.updatePassword(_textPasswordController.text);
+      }
+      if (_emailChanged) {
+        _auth.updateEmail(_textEmailController.text);
+      }
       if (!mounted) return;
-      _valueChanged = false;
-
       Navigator.pop(context);
     } catch (e) {
       if (mounted) {
@@ -120,7 +130,7 @@ class _UserProfileState extends State<UserProfile> {
     }
 
     return _loading
-        ? Template(child: Loading())
+        ? Loading()
         : Scaffold(
             backgroundColor: Colors.transparent,
             resizeToAvoidBottomInset: false,
@@ -165,7 +175,7 @@ class _UserProfileState extends State<UserProfile> {
                                     .copyWith(labelText: "Name"),
                                 controller: _textNameController,
                                 onChanged: (_) =>
-                                    setState(() => _valueChanged = true),
+                                    setState(() => _nameChanged = true),
                               ),
                               const SizedBox(height: 30),
                               TextFormField(
@@ -173,7 +183,7 @@ class _UserProfileState extends State<UserProfile> {
                                     .copyWith(labelText: "Email"),
                                 controller: _textEmailController,
                                 onChanged: (_) =>
-                                    setState(() => _valueChanged = true),
+                                    setState(() => _emailChanged = true),
                                 validator: (val) {
                                   if (val == null ||
                                       !val.contains('@') ||
@@ -187,12 +197,12 @@ class _UserProfileState extends State<UserProfile> {
                               TextFormField(
                                 decoration: AppDecoration().textDecoration
                                     .copyWith(labelText: "New Password"),
+                                controller: _textPasswordController,
                                 obscuringCharacter: "*",
                                 obscureText: !_showPassword,
                                 onChanged: (val) {
                                   setState(() {
-                                    _newPassword = val;
-                                    _valueChanged = true;
+                                    _passwordChanged = true;
                                   });
                                 },
                                 validator: (val) {
@@ -239,9 +249,6 @@ class _UserProfileState extends State<UserProfile> {
                                         } else {
                                           _updatedGameRecord[key] =
                                               gameData[key]!;
-                                          print(
-                                            _updatedGameRecord[key]?.gameType,
-                                          );
                                         }
                                       }
                                       recordBottomSheet
@@ -254,7 +261,9 @@ class _UserProfileState extends State<UserProfile> {
                                   ),
                                   ElevatedButton.icon(
                                     onPressed: () async {
-                                      if (_valueChanged) {
+                                      if (_nameChanged ||
+                                          _emailChanged ||
+                                          _passwordChanged) {
                                         _saveProfileChanges();
                                       } else {
                                         Navigator.pop(context);

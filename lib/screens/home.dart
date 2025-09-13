@@ -5,6 +5,7 @@ import 'package:flash_math/services/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user.dart';
+import '../models/user_record.dart';
 import '../services/hive_Service.dart';
 
 class Home extends StatefulWidget {
@@ -34,6 +35,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     final mathUser = context.watch<MathUser?>();
     final hiveService = context.watch<HiveService>();
+    final userRecord = Provider.of<UserRecord?>(context);
     if (mathUser != null) {
       return _loading
           ? Loading()
@@ -46,23 +48,21 @@ class _HomeState extends State<Home> {
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    ElevatedButton.icon(
-                      onPressed: () {
+                    InkWell(
+                      onTap: (){
                         Navigator.pushNamed(context, "/userProfile");
                       },
-                      icon: Icon(Icons.person_2_outlined),
-                      label: Text("Profile"),
-                    ),
+                      child: CircleAvatar(
+                        radius: 35,
+                        backgroundImage: hiveService.profileImage != null
+                            ? FileImage(hiveService.profileImage!)
+                            : null,
+                        child: hiveService.profileImage == null
+                            ? Icon(Icons.person)
+                            : null,
 
-                    CircleAvatar(
-                      radius: 35,
-                      backgroundImage: hiveService.profileImage != null
-                          ? FileImage(hiveService.profileImage!)
-                          : null,
-                      child: hiveService.profileImage == null
-                          ? Icon(Icons.person)
-                          : null,
-                    ),
+                      ),
+                    ),SizedBox(width: 30,),
                     ElevatedButton.icon(
                       onPressed: () async {
                         setState(() {
@@ -86,7 +86,7 @@ class _HomeState extends State<Home> {
                   margin: EdgeInsets.all(40),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [SizedBox(height: 55), ListOfGames(fontSize: 30)],
+                    children: [Text("Welcome ${userRecord!.name}",style: TextStyle(fontSize: 30),),SizedBox(height: 55), ListOfGames(fontSize: 30)],
                   ),
                 ),
               ),

@@ -95,7 +95,7 @@ class CustomSheets {
               ],
             ),
           ),
-            Confetti(isPlaying: true),
+            Confetti(isPlaying: playConfetti),
           ]
         );
       },

@@ -115,6 +115,7 @@ class _LevelsState extends State<Levels> {
     return Template(
       child: Scaffold(
         appBar: AppBar(
+          toolbarHeight: 60,
           automaticallyImplyLeading: false,
           elevation: 0.0,
           centerTitle: true,

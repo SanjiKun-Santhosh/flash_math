@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -54,6 +55,7 @@ class _FlashState extends State<Flash> {
   GameTypes _currentOperation = GameTypes.addition;
   bool _isButtonChanged = false;
   bool _isHighScore = false;
+  bool _isLevelledUp=false;
 
   @override
   void initState() {
@@ -151,6 +153,7 @@ class _FlashState extends State<Flash> {
           _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
           _levelIndex++;
           _levelCounter = 0;
+          _isLevelledUp=true;
         }
       }
     });
@@ -266,7 +269,9 @@ class _FlashState extends State<Flash> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 75),
+            SizedBox(height: 30),
+            Text("Question $_record",style: TextStyle(fontSize: 30),),
+            SizedBox(height: 30),
             Card(
               child: SizedBox(
                 height: 175,
@@ -404,6 +409,16 @@ class _FlashState extends State<Flash> {
                       ),
                     ],
                   ),
+            SizedBox(height: 30),
+            _isLevelledUp ? AnimatedTextKit(animatedTexts: [
+              FlickerAnimatedText("Wow, new level reached!",textStyle: TextStyle(fontSize: 25,fontFamily: CustomFontStyle().secondaryFont))
+            ],pause: Duration(seconds: 3),
+              onFinished:(){
+                setState(() {
+                  _isLevelledUp=false;
+                });
+              } ,
+            ) : Container(),
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flash_math/models/user_record.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -50,7 +51,9 @@ class _SubtractionState extends State<Subtraction> {
   late final GameRecord _selectedGameRecord;
   late final UserRecord _streamUserRecord;
   bool _isInitialized = false;
-bool _isHighScore=false;
+  bool _isHighScore = false;
+  bool _isLevelledUp = false;
+
   @override
   void initState() {
     super.initState();
@@ -75,16 +78,20 @@ bool _isHighScore=false;
       } else {
         _timerSpeed = int.parse(levelList[widget.levelType]!);
         _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
-        _selectedGameRecord = userRecord.gameRecord![_gameType]??gameTypesInitialisation(_gameType);
+        _selectedGameRecord =
+            userRecord.gameRecord![_gameType] ??
+            gameTypesInitialisation(_gameType);
       }
       _streamUserRecord = userRecord;
-      currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
+      currentRecord = globalRecord = int.parse(
+        _selectedGameRecord.record ?? "0",
+      );
       _levelUpAt = defaultLevelUpAt;
       _min = widget.min;
       _max = widget.max;
       _isInitialized = true;
     });
-   await _getRandom();
+    await _getRandom();
     startProgress();
   }
 
@@ -142,6 +149,7 @@ bool _isHighScore=false;
           _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
           _levelIndex++;
           _levelCounter = 0;
+          _isLevelledUp = true;
         }
       }
     });
@@ -155,14 +163,14 @@ bool _isHighScore=false;
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
-          _isHighScore=true;
+          _isHighScore = true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.timeOverMsg,
-          playConfetti: _isHighScore
+          playConfetti: _isHighScore,
         );
       });
     }
@@ -194,14 +202,14 @@ bool _isHighScore=false;
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
-          _isHighScore=true;
+          _isHighScore = true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.answerWrongMsg,
-          playConfetti: _isHighScore
+          playConfetti: _isHighScore,
         );
       });
     }
@@ -237,7 +245,9 @@ bool _isHighScore=false;
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 75),
+            SizedBox(height: 30),
+            Text("Question $_record", style: TextStyle(fontSize: 30)),
+            SizedBox(height: 30),
             Card(
               child: SizedBox(
                 height: 175,
@@ -376,6 +386,26 @@ bool _isHighScore=false;
                       ),
                     ],
                   ),
+            SizedBox(height: 30),
+            _isLevelledUp
+                ? AnimatedTextKit(
+                    animatedTexts: [
+                      FlickerAnimatedText(
+                        "Wow, new level reached!",
+                        textStyle: TextStyle(
+                          fontSize: 25,
+                          fontFamily: CustomFontStyle().secondaryFont,
+                        ),
+                      ),
+                    ],
+                    pause: Duration(seconds: 3),
+                    onFinished: () {
+                      setState(() {
+                        _isLevelledUp = false;
+                      });
+                    },
+                  )
+                : Container(),
           ],
         ),
       ),

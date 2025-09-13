@@ -126,6 +126,34 @@ class Auth {
       return linkAnonymousWithCredentials(email, password);
     }
   }
+  Future updatePassword(String password) async{
+    if (await _checkAnonymousUser() == false) {
+      try {
+        User? user = _auth.currentUser;
+        if (password.isNotEmpty) {
+          await user!.updatePassword(password);
+        }
+        return _userFromFireBase(user);
+      } catch (e) {
+        return null;
+      }
+    }
+
+  }
+  Future updateEmail(String email)async{
+    if(await _checkAnonymousUser()==false){
+      try{
+        User? user=_auth.currentUser;
+        String? currentEmail=user?.email;
+        if(email!=currentEmail && email.isNotEmpty){
+          await user!.verifyBeforeUpdateEmail(email);
+        }
+        return _userFromFireBase(user);
+      }catch(e){
+        return null;
+      }
+    }
+  }
 
   Future getEmail() async {
     User? user = _auth.currentUser;

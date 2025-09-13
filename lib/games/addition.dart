@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flash_math/game_algorithm/number_generator.dart';
 import 'package:flash_math/models/game_record.dart';
 import 'package:flash_math/services/database.dart';
@@ -49,6 +50,7 @@ class _AdditionState extends State<Addition> {
   late final UserRecord _streamUserRecord;
   bool _isHighScore = false;
   bool _isInitialized = false;
+  bool _isLevelledUp=false;
 
   @override
   void initState() {
@@ -140,6 +142,7 @@ class _AdditionState extends State<Addition> {
           _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
           _levelIndex++;
           _levelCounter = 0;
+          _isLevelledUp=true;
         }
       }
     });
@@ -241,7 +244,9 @@ class _AdditionState extends State<Addition> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 75),
+            SizedBox(height: 30),
+            Text("Question $_record",style: TextStyle(fontSize: 30),),
+            SizedBox(height: 30),
             Card(
               child: SizedBox(
                 height: 175,
@@ -376,6 +381,16 @@ class _AdditionState extends State<Addition> {
                       ),
                     ],
                   ),
+            SizedBox(height: 30),
+            _isLevelledUp ? AnimatedTextKit(animatedTexts: [
+              FlickerAnimatedText("Wow, new level reached!",textStyle: TextStyle(fontSize: 25,fontFamily: CustomFontStyle().secondaryFont))
+            ],pause: Duration(seconds: 3),
+            onFinished:(){
+              setState(() {
+                _isLevelledUp=false;
+              });
+            } ,
+            ) : Container(),
           ],
         ),
       ),
