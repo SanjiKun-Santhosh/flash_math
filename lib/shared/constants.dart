@@ -15,6 +15,7 @@ class GameOutputTexts {
   static const answerWrongMsg = "Wrong answer!!";
   static const congratsMsg = "Congratulations!! You new best is ";
   static const playAgain = "Do you want to play again?";
+  static const levelUp="New level reached!";
 }
 
 class CustomFontStyle {
@@ -62,7 +63,7 @@ const Map<String, String> levelList = {
 final List levelListKeys = levelList.keys.toList();
 const String practiceLevel = "Practice";
 const int defaultTimerSetting = 30;
-const int defaultLevelUpAt = 3;
+const int defaultLevelUpAt = 25;
 const int maximumLevelUpAt = 10000;
 const int minimumForRandomGen = 0;
 const int maximumForRandomGen = 100;

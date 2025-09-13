@@ -2,6 +2,7 @@ import 'package:flash_math/screens/authenticate.dart';
 import 'package:flash_math/screens/listOfGames.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/services/auth.dart';
+import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user.dart';
@@ -41,28 +42,12 @@ class _HomeState extends State<Home> {
           ? Loading()
           : Scaffold(
               appBar: AppBar(
-                toolbarHeight: 70,
                 elevation: 0.0,
                 centerTitle: true,
                 backgroundColor: Colors.transparent,
                 title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    InkWell(
-                      onTap: (){
-                        Navigator.pushNamed(context, "/userProfile");
-                      },
-                      child: CircleAvatar(
-                        radius: 35,
-                        backgroundImage: hiveService.profileImage != null
-                            ? FileImage(hiveService.profileImage!)
-                            : null,
-                        child: hiveService.profileImage == null
-                            ? Icon(Icons.person)
-                            : null,
-
-                      ),
-                    ),SizedBox(width: 30,),
                     ElevatedButton.icon(
                       onPressed: () async {
                         setState(() {
@@ -76,17 +61,40 @@ class _HomeState extends State<Home> {
                       icon: Icon(Icons.logout_rounded),
                       label: Text("Logout"),
                     ),
+                    SizedBox(width: 10,)
                   ],
                 ),
               ),
               backgroundColor: Colors.transparent,
               body: SingleChildScrollView(
                 child: Container(
-                  padding: EdgeInsets.fromLTRB(15, 15, 15, 0),
-                  margin: EdgeInsets.all(40),
+                  padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
+                  margin: EdgeInsets.all(10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [Text("Welcome ${userRecord!.name}",style: TextStyle(fontSize: 30),),SizedBox(height: 55), ListOfGames(fontSize: 30)],
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(context, "/userProfile");
+                        },
+                        child: CircleAvatar(
+                          radius: 35,
+                          backgroundImage: hiveService.profileImage != null
+                              ? FileImage(hiveService.profileImage!)
+                              : null,
+                          child: hiveService.profileImage == null
+                              ? Icon(Icons.person)
+                              : null,
+                        ),
+                      ),
+                      SizedBox(height: 15),
+                      Text(
+                        "Welcome ${userRecord!.name}",
+                        style: TextStyle(fontSize: 30,fontFamily: CustomFontStyle().primaryFont,fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 55),
+                      ListOfGames(fontSize: 30),
+                    ],
                   ),
                 ),
               ),

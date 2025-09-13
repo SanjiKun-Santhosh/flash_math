@@ -383,8 +383,8 @@ class _AdditionState extends State<Addition> {
                   ),
             SizedBox(height: 30),
             _isLevelledUp ? AnimatedTextKit(animatedTexts: [
-              FlickerAnimatedText("Wow, new level reached!",textStyle: TextStyle(fontSize: 25,fontFamily: CustomFontStyle().secondaryFont))
-            ],pause: Duration(seconds: 3),
+              FlickerAnimatedText(GameOutputTexts.levelUp,textStyle: TextStyle(fontSize: 25,fontFamily: CustomFontStyle().secondaryFont))
+            ],pause: Duration(seconds: 5),
             onFinished:(){
               setState(() {
                 _isLevelledUp=false;

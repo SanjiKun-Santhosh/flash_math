@@ -391,14 +391,14 @@ class _SubtractionState extends State<Subtraction> {
                 ? AnimatedTextKit(
                     animatedTexts: [
                       FlickerAnimatedText(
-                        "Wow, new level reached!",
+                        GameOutputTexts.levelUp,
                         textStyle: TextStyle(
                           fontSize: 25,
                           fontFamily: CustomFontStyle().secondaryFont,
                         ),
                       ),
                     ],
-                    pause: Duration(seconds: 3),
+                    pause: Duration(seconds: 5),
                     onFinished: () {
                       setState(() {
                         _isLevelledUp = false;
