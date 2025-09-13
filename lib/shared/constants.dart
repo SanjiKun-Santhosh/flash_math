@@ -7,7 +7,7 @@ class ImageGallery {
   static const profilePicture = "assets/images/default_profile_picture.jpg";
 }
 
-enum GameTypes { addition, substraction, complex, flash }
+enum GameTypes { addition, subtraction, complex, flash }
 
 class GameOutputTexts {
   static const personalBest = "Your personal best is ";
@@ -62,7 +62,7 @@ const Map<String, String> levelList = {
 final List levelListKeys = levelList.keys.toList();
 const String practiceLevel = "Practice";
 const int defaultTimerSetting = 30;
-const int defaultLevelUpAt = 2;
+const int defaultLevelUpAt = 25;
 const int maximumLevelUpAt = 10000;
 const int minimumForRandomGen = 0;
 const int maximumForRandomGen = 100;
@@ -86,7 +86,7 @@ GameRecord gameTypesInitialisation(String gameMode){
 
 final Map<String,GameRecord> gameRecordInitialization={
   "addition": gameTypesInitialisation("addition"),
-  "substraction": gameTypesInitialisation("substraction"),
+  "subtraction": gameTypesInitialisation("subtraction"),
   "complex": gameTypesInitialisation("complex"),
   "flash": gameTypesInitialisation("flash"),
 };

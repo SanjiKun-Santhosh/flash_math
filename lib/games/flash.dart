@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -55,6 +53,7 @@ class _FlashState extends State<Flash> {
   final Random _rand = Random();
   GameTypes _currentOperation = GameTypes.addition;
   bool _isButtonChanged = false;
+  bool _isHighScore = false;
 
   @override
   void initState() {
@@ -70,22 +69,27 @@ class _FlashState extends State<Flash> {
       if (mounted) Navigator.pop(context);
       return;
     }
-    _service = DatabaseService(uid: userRecord.uid);
-    if (widget.levelType == practiceLevel) {
-      _timerSpeed = widget.timerSetting;
-      _levelIndex = 0;
-      _selectedGameRecord = gameTypesInitialisation(_gameType);
-    } else {
-      _timerSpeed = int.parse(levelList[widget.levelType]!);
-      _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
-      _selectedGameRecord = userRecord.gameRecord![_gameType]!;
-    }
-    _streamUserRecord = userRecord;
-    currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
-    _levelUpAt = defaultLevelUpAt;
-    _min = widget.min;
-    _max = widget.max;
+
     setState(() {
+      _service = DatabaseService(uid: userRecord.uid);
+      if (widget.levelType == practiceLevel) {
+        _timerSpeed = widget.timerSetting;
+        _levelIndex = 0;
+        _selectedGameRecord = gameTypesInitialisation(_gameType);
+      } else {
+        _timerSpeed = int.parse(levelList[widget.levelType]!);
+        _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
+        _selectedGameRecord =
+            userRecord.gameRecord![_gameType] ??
+            gameTypesInitialisation(_gameType);
+      }
+      _streamUserRecord = userRecord;
+      currentRecord = globalRecord = int.parse(
+        _selectedGameRecord.record ?? "0",
+      );
+      _levelUpAt = defaultLevelUpAt;
+      _min = widget.min;
+      _max = widget.max;
       _isInitialized = true;
     });
     _getRandom(GameTypes.addition);
@@ -97,7 +101,7 @@ class _FlashState extends State<Flash> {
     if (gameType == GameTypes.addition) {
       await generator.random();
       await generator.randomAddTotal();
-    } else if (gameType == GameTypes.substraction) {
+    } else if (gameType == GameTypes.subtraction) {
       await generator.randomForSub();
       await generator.randomSubTotal();
     }
@@ -160,12 +164,14 @@ class _FlashState extends State<Flash> {
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
+          _isHighScore = true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.timeOverMsg,
+          playConfetti: _isHighScore,
         );
       });
     }
@@ -191,7 +197,7 @@ class _FlashState extends State<Flash> {
       }
       final nextOperation = _rand.nextBool()
           ? GameTypes.addition
-          : GameTypes.substraction;
+          : GameTypes.subtraction;
       _getRandom(nextOperation);
 
       resetProgress();
@@ -211,12 +217,14 @@ class _FlashState extends State<Flash> {
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
+          _isHighScore = true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.answerWrongMsg,
+          playConfetti: _isHighScore,
         );
       });
     }

@@ -1,7 +1,6 @@
 import 'package:flash_math/screens/authenticate.dart';
 import 'package:flash_math/screens/listOfGames.dart';
 import 'package:flash_math/screens/loading.dart';
-import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +20,6 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    // TODO: implement initSt
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mathUser = context.read<MathUser?>();
@@ -41,6 +39,7 @@ class _HomeState extends State<Home> {
           ? Loading()
           : Scaffold(
               appBar: AppBar(
+                toolbarHeight: 70,
                 elevation: 0.0,
                 centerTitle: true,
                 backgroundColor: Colors.transparent,
@@ -56,7 +55,7 @@ class _HomeState extends State<Home> {
                     ),
 
                     CircleAvatar(
-                      radius: 30,
+                      radius: 35,
                       backgroundImage: hiveService.profileImage != null
                           ? FileImage(hiveService.profileImage!)
                           : null,
@@ -87,7 +86,7 @@ class _HomeState extends State<Home> {
                   margin: EdgeInsets.all(40),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [SizedBox(height: 90), ListOfGames(fontSize: 30)],
+                    children: [SizedBox(height: 55), ListOfGames(fontSize: 30)],
                   ),
                 ),
               ),

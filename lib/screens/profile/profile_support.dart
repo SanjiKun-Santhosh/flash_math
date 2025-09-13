@@ -51,7 +51,9 @@ class RecordBottomSheet {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              AnimatedTextKit(animatedTexts: [
+                              AnimatedTextKit(
+                                  repeatForever: false,
+                                  animatedTexts: [
                                 TyperAnimatedText(
                                   entry.key.toUpperCase(),
                                   textStyle: TextStyle(

@@ -2,9 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flash_math/models/storage_hive_model.dart';
 import 'package:flash_math/models/user.dart';
 import 'package:flash_math/models/user_record.dart';
-import 'package:flash_math/screens/authenticate.dart';
 import 'package:flash_math/screens/home.dart';
-import 'package:flash_math/screens/login.dart';
 import 'package:flash_math/screens/profile/profile.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/screens/wrapper.dart';
@@ -30,21 +28,32 @@ void main() async {
           value: Auth().mathUser,
           initialData: null,
         ),
-        StreamProvider<UserRecord?>(
-          create: (context) {
-            final mathUser = Provider.of<MathUser?>(context);
-            return mathUser != null
-                ? DatabaseService(uid: mathUser.uid).userData
-                : Stream.value(null);
+        ProxyProvider<MathUser?, DatabaseService?>(
+          update: (context, mathUser, previousDatabaseService) {
+            if (mathUser == null) {
+              return null;
+            }
+            if (previousDatabaseService?.uid == mathUser.uid) {
+              return previousDatabaseService;
+            }
+            return DatabaseService(uid: mathUser.uid);
           },
-          initialData: null,
         ),
          ChangeNotifierProvider(create: (context){
           return HiveService();
         })
       ],
-      child: MyApp(),
-    ),
+      child:  Consumer<DatabaseService?>(
+        builder: (context, dbService, child) {
+          return StreamProvider<UserRecord?>.value(
+            value: dbService?.userData ?? Stream.value(null),
+            initialData: null,
+            child: child,
+          );
+        },
+        child: MyApp()
+        ),
+      ),
   );
 }
 

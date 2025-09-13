@@ -10,13 +10,13 @@ import '../services/database.dart';
 import '../shared/constants.dart';
 import '../screens/custom_sheets.dart';
 
-class Substraction extends StatefulWidget {
+class Subtraction extends StatefulWidget {
   final String levelType;
   final int min;
   final int max;
   final int timerSetting;
 
-  const Substraction({
+  const Subtraction({
     super.key,
     this.levelType = practiceLevel,
     this.timerSetting = defaultTimerSetting,
@@ -25,10 +25,10 @@ class Substraction extends StatefulWidget {
   });
 
   @override
-  State<Substraction> createState() => _SubstractionState();
+  State<Subtraction> createState() => _SubtractionState();
 }
 
-class _SubstractionState extends State<Substraction> {
+class _SubtractionState extends State<Subtraction> {
   late int _timerSpeed;
   late int _levelIndex;
   int _levelUpAt = 0;
@@ -42,7 +42,7 @@ class _SubstractionState extends State<Substraction> {
   double _progressValue = 0.0;
   Timer? _timer;
   bool _isButtonDisabled = false;
-  final String _gameType = GameTypes.substraction.name;
+  final String _gameType = GameTypes.subtraction.name;
   int currentRecord = 0;
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();
@@ -50,7 +50,7 @@ class _SubstractionState extends State<Substraction> {
   late final GameRecord _selectedGameRecord;
   late final UserRecord _streamUserRecord;
   bool _isInitialized = false;
-
+bool _isHighScore=false;
   @override
   void initState() {
     super.initState();
@@ -59,35 +59,36 @@ class _SubstractionState extends State<Substraction> {
     });
   }
 
-  void _setupGame() {
+  Future<void> _setupGame() async {
     final userRecord = Provider.of<UserRecord?>(context, listen: false);
     if (userRecord == null) {
       if (mounted) Navigator.pop(context);
       return;
     }
-    _service = DatabaseService(uid: userRecord.uid);
-    if (widget.levelType == practiceLevel) {
-      _timerSpeed = widget.timerSetting;
-      _levelIndex = 0;
-      _selectedGameRecord = gameTypesInitialisation(_gameType);
-    } else {
-      _timerSpeed = int.parse(levelList[widget.levelType]!);
-      _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
-      _selectedGameRecord = userRecord.gameRecord![_gameType]!;
-    }
-    _streamUserRecord = userRecord;
-    currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
-    _levelUpAt = defaultLevelUpAt;
-    _min = widget.min;
-    _max = widget.max;
+
     setState(() {
+      _service = DatabaseService(uid: userRecord.uid);
+      if (widget.levelType == practiceLevel) {
+        _timerSpeed = widget.timerSetting;
+        _levelIndex = 0;
+        _selectedGameRecord = gameTypesInitialisation(_gameType);
+      } else {
+        _timerSpeed = int.parse(levelList[widget.levelType]!);
+        _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
+        _selectedGameRecord = userRecord.gameRecord![_gameType]??gameTypesInitialisation(_gameType);
+      }
+      _streamUserRecord = userRecord;
+      currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
+      _levelUpAt = defaultLevelUpAt;
+      _min = widget.min;
+      _max = widget.max;
       _isInitialized = true;
     });
-    _getRandom();
+   await _getRandom();
     startProgress();
   }
 
-  void _getRandom() async {
+  Future<void> _getRandom() async {
     final generator = NumberGenerator(randomMin: _min, randomMax: _max);
     await generator.randomForSub();
     await generator.randomSubTotal();
@@ -154,12 +155,14 @@ class _SubstractionState extends State<Substraction> {
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
+          _isHighScore=true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.timeOverMsg,
+          playConfetti: _isHighScore
         );
       });
     }
@@ -191,12 +194,14 @@ class _SubstractionState extends State<Substraction> {
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
+          _isHighScore=true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.answerWrongMsg,
+          playConfetti: _isHighScore
         );
       });
     }

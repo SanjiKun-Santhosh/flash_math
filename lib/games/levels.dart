@@ -1,6 +1,6 @@
 import 'package:flash_math/games/complex.dart';
 import 'package:flash_math/games/flash.dart';
-import 'package:flash_math/games/substraction.dart';
+import 'package:flash_math/games/subtraction.dart';
 import 'package:flash_math/models/game_record.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
@@ -22,25 +22,38 @@ class Levels extends StatefulWidget {
 }
 
 class _LevelsState extends State<Levels> {
-  Map<String, bool>? _gameLevelList;
+  Map<String, bool> _gameLevelList = {};
+  String? _errorMessage;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
+    _setupLevels();
+  }
+
+  void _setupLevels() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mathUser = context.read<MathUser?>();
-      final userRecord = context.read<UserRecord?>();
+      final userRecord = Provider.of<UserRecord?>(context, listen: false);
+      if (userRecord == null) {
+        setState(() {
+          _loading = false;
+          _errorMessage = "No user Record found!";
+        });
+        return;
+      }
       if (mathUser != null) {
         context.read<HiveService>().loadProfileImage(mathUser.uid);
       }
-
-      if (userRecord != null) {
-        GameRecord? record =
-            userRecord.gameRecord?[widget.gameType.toLowerCase()];
-        _gameLevelList = record?.gameData ?? {};
-      } else {
-        _gameLevelList = gameTypesInitialisation(widget.gameType.toLowerCase()).gameData;
-      }
+      GameRecord? gameObject =
+          userRecord.gameRecord?[widget.gameType.toLowerCase()];
+      setState(() {
+        _gameLevelList =
+            gameObject?.gameData ??
+            gameTypesInitialisation(widget.gameType.toLowerCase()).gameData;
+        _loading = false;
+      });
     });
   }
 
@@ -48,8 +61,8 @@ class _LevelsState extends State<Levels> {
     switch (widget.gameType) {
       case "Addition":
         return Addition(levelType: level);
-      case "Substraction":
-        return Substraction(levelType: level);
+      case "Subtraction":
+        return Subtraction(levelType: level);
       case "Complex":
         return Complex(levelType: level);
       case "Flash":
@@ -64,6 +77,41 @@ class _LevelsState extends State<Levels> {
   @override
   Widget build(BuildContext context) {
     final hiveService = context.watch<HiveService>();
+    if (_loading) {
+      return const Template(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+    if (_errorMessage != null) {
+      return Template(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.red),
+                SizedBox(height: 16),
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Go Back"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Template(
       child: Scaffold(
         appBar: AppBar(
@@ -95,7 +143,7 @@ class _LevelsState extends State<Levels> {
             margin: const EdgeInsets.all(15),
             child: Column(
               children: levelList.keys.map((level) {
-                bool levelBool = _gameLevelList?[level] ?? false;
+                bool levelBool = _gameLevelList[level] ?? false;
                 return Column(
                   children: [
                     Card(
@@ -103,7 +151,7 @@ class _LevelsState extends State<Levels> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                       elevation: 3.0,
-                      shadowColor: Colors.red,
+                      shadowColor: Colors.black,
                       surfaceTintColor: Colors.greenAccent,
                       color: const Color(0xFFeaf4f4),
                       clipBehavior: Clip.hardEdge,
@@ -121,6 +169,7 @@ class _LevelsState extends State<Levels> {
                                     ),
                                   );
                                 } else {
+                                  print(level);
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute<void>(
@@ -136,8 +185,12 @@ class _LevelsState extends State<Levels> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             levelBool
-                                ? Icon(Icons.lock_open_outlined,color: Colors.black,size: 25,)
-                                : Icon(Icons.lock,size: 25,),
+                                ? Icon(
+                                    Icons.lock_open_outlined,
+                                    color: Colors.black,
+                                    size: 25,
+                                  )
+                                : Icon(Icons.lock, size: 25),
                             SizedBox(width: 20),
                             Text(
                               level,

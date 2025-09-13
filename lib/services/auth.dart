@@ -188,11 +188,15 @@ class Auth {
       );
       final UserCredential userCredential = await _googleSignInSupport(account);
       final User? user = userCredential.user;
-      if(await DatabaseService(uid:user!.uid).userData.isEmpty){
+      final DatabaseService dbService = DatabaseService(uid: user!.uid);
+      final userData = await dbService.userData.first.timeout(
+        Duration(seconds: 5),
+        onTimeout: null,
+      );
+      if (userData.gameRecord == null || userData.gameRecord!.isEmpty) {
         await DatabaseService(
           uid: user.uid,
         ).addUserData("Player", gameRecordInitialization);
-
       }
 
       return _userFromFireBase(user);

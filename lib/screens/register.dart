@@ -87,7 +87,7 @@ class _RegisterState extends State<Register> {
                         },
                         decoration: AppDecoration().textDecoration,
                       ),
-              
+
                       SizedBox(height: 50),
                       TextFormField(
                         initialValue: "Password",
@@ -125,7 +125,7 @@ class _RegisterState extends State<Register> {
                                 );
                           }
                         },
-              
+
                         label: Text(
                           "Register",
                           textAlign: TextAlign.center,
@@ -171,7 +171,7 @@ class _RegisterState extends State<Register> {
                         ],
                       ),
                       SizedBox(height: 30),
-              
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: <Widget>[
@@ -186,14 +186,19 @@ class _RegisterState extends State<Register> {
                             iconSize: 40,
                           ),
                           IconButton(
-                            onPressed: () async{
+                            onPressed: () async {
+                              setState(() {
+                                _loading = true;
+                              });
                               dynamic result = await _auth.signInWithGoogle();
                               if (!mounted) return;
                               setState(() {
                                 if (result == null ||
                                     result.toString().contains("error")) {
                                   CustomSheets().showLoginErrorDialog(context);
-                                } else {}
+                                } else {
+                                  _loading = false;
+                                }
                               });
                             },
                             icon: FaIcon(FontAwesomeIcons.google),

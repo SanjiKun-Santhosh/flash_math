@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 
@@ -18,8 +17,22 @@ class _ConfettiState extends State<Confetti> {
   void initState() {
     super.initState();
     _controllerBottomCenter = ConfettiController(
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 3),
     );
+    if(widget.isPlaying){
+      _controllerBottomCenter.play();
+    }
+  }
+
+  @override
+  void didUpdateWidget(Confetti oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if(widget.isPlaying && !oldWidget.isPlaying){
+      _controllerBottomCenter.play();
+    }
+    else if(!widget.isPlaying && oldWidget.isPlaying){
+      _controllerBottomCenter.stop();
+    }
   }
 
 
@@ -28,25 +41,18 @@ class _ConfettiState extends State<Confetti> {
     _controllerBottomCenter.dispose();
     super.dispose();
   }
-  Widget control(){
-    setState(() {
-      _controllerBottomCenter.play();
-    });
+
+  @override
+  Widget build(BuildContext context) {
     return Align(alignment:Alignment.topCenter,
         child:   ConfettiWidget(
           confettiController: _controllerBottomCenter,
           blastDirection: -pi / 2,
           emissionFrequency: 0.01,
-          numberOfParticles: 50,
+          numberOfParticles: 100,
           maxBlastForce: 100,
           minBlastForce: 80,
           gravity: 0.3,
         ));
-  }
-  @override
-  Widget build(BuildContext context) {
-    isPlaying=widget.isPlaying;
-    return isPlaying ? control()
-    : Container();
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flash_math/games/substraction.dart';
+import 'package:flash_math/games/subtraction.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ class _CustomLevelState extends State<CustomLevel> {
           timerSetting: _timer,
         );
       case "Substraction":
-        return Substraction(
+        return Subtraction(
           levelType: practiceLevel,
           min: _min,
           max: _max,

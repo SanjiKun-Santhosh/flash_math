@@ -47,8 +47,7 @@ class _AdditionState extends State<Addition> {
   late final DatabaseService _service;
   late final GameRecord _selectedGameRecord;
   late final UserRecord _streamUserRecord;
-
-  //late final List<String> _userGameRecordsKeyList;
+  bool _isHighScore = false;
   bool _isInitialized = false;
 
   @override
@@ -59,36 +58,41 @@ class _AdditionState extends State<Addition> {
     });
   }
 
-  void _setupGame() {
+  Future<void> _setupGame() async {
     final userRecord = Provider.of<UserRecord?>(context, listen: false);
     if (userRecord == null) {
       if (mounted) Navigator.pop(context);
       return;
     }
-    _service = DatabaseService(uid: userRecord.uid);
-    if (widget.levelType == practiceLevel) {
-      _timerSpeed = widget.timerSetting;
-      _levelIndex = 0;
-      _selectedGameRecord = gameTypesInitialisation(_gameType);
-    } else {
-      _timerSpeed = int.parse(levelList[widget.levelType]!);
-      _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
-      _selectedGameRecord = userRecord.gameRecord![_gameType]!;
-    }
-    _streamUserRecord = userRecord;
-    //_userGameRecordsKeyList=gameTypeObjectList;
-    currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
-    _levelUpAt = defaultLevelUpAt;
-    _min = widget.min;
-    _max = widget.max;
+
     setState(() {
+      _service = DatabaseService(uid: userRecord.uid);
+      if (widget.levelType == practiceLevel) {
+        _timerSpeed = widget.timerSetting;
+        _levelIndex = 0;
+        _selectedGameRecord = gameTypesInitialisation(_gameType);
+      } else {
+        _timerSpeed = int.parse(levelList[widget.levelType]!);
+        _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
+        _selectedGameRecord =
+            userRecord.gameRecord![_gameType] ??
+            gameTypesInitialisation(_gameType);
+      }
+      _streamUserRecord = userRecord;
+      currentRecord = globalRecord = int.parse(
+        _selectedGameRecord.record ?? "0",
+      );
+      _levelUpAt = defaultLevelUpAt;
+      _min = widget.min;
+      _max = widget.max;
       _isInitialized = true;
     });
-    _getRandom();
+
+    await _getRandom();
     startProgress();
   }
 
-  void _getRandom() async {
+  Future<void> _getRandom() async {
     final generator = NumberGenerator(randomMin: _min, randomMax: _max);
     await generator.random();
     await generator.randomAddTotal();
@@ -149,12 +153,14 @@ class _AdditionState extends State<Addition> {
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
+          _isHighScore = true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.timeOverMsg,
+          playConfetti: _isHighScore,
         );
       });
     }
@@ -186,12 +192,14 @@ class _AdditionState extends State<Addition> {
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
+          _isHighScore = true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.answerWrongMsg,
+          playConfetti: _isHighScore,
         );
       });
     }

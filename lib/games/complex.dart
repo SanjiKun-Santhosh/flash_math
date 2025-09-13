@@ -52,6 +52,7 @@ class _ComplexState extends State<Complex> {
   bool _isInitialized = false;
   final Random _rand = Random();
   GameTypes _currentOperation = GameTypes.addition;
+  bool _isHighScore = false;
 
   @override
   void initState() {
@@ -61,40 +62,44 @@ class _ComplexState extends State<Complex> {
     });
   }
 
-  void _setupGame() {
+  Future<void> _setupGame() async {
     final userRecord = Provider.of<UserRecord?>(context, listen: false);
     if (userRecord == null) {
       if (mounted) Navigator.pop(context);
       return;
     }
-    _service = DatabaseService(uid: userRecord.uid);
-    if (widget.levelType == practiceLevel) {
-      _timerSpeed = widget.timerSetting;
-      _levelIndex = 0;
-      _selectedGameRecord = gameTypesInitialisation(_gameType);
-    } else {
-      _timerSpeed = int.parse(levelList[widget.levelType]!);
-      _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
-      _selectedGameRecord = userRecord.gameRecord![_gameType]!;
-    }
-    _streamUserRecord = userRecord;
-    currentRecord = globalRecord = int.parse(_selectedGameRecord.record ?? "0");
-    _levelUpAt = defaultLevelUpAt;
-    _min = widget.min;
-    _max = widget.max;
     setState(() {
+      _service = DatabaseService(uid: userRecord.uid);
+      if (widget.levelType == practiceLevel) {
+        _timerSpeed = widget.timerSetting;
+        _levelIndex = 0;
+        _selectedGameRecord = gameTypesInitialisation(_gameType);
+      } else {
+        _timerSpeed = int.parse(levelList[widget.levelType]!);
+        _levelIndex = levelListKeys.indexOf(widget.levelType) + 1;
+        _selectedGameRecord =
+            userRecord.gameRecord![_gameType] ??
+            gameTypesInitialisation(_gameType);
+      }
+      _streamUserRecord = userRecord;
+      currentRecord = globalRecord = int.parse(
+        _selectedGameRecord.record ?? "0",
+      );
+      _levelUpAt = defaultLevelUpAt;
+      _min = widget.min;
+      _max = widget.max;
       _isInitialized = true;
     });
-    _getRandom(GameTypes.addition);
+    await _getRandom(GameTypes.addition);
     startProgress();
   }
 
-  void _getRandom(GameTypes gameType) async {
+  Future<void> _getRandom(GameTypes gameType) async {
     final generator = NumberGenerator(randomMin: _min, randomMax: _max);
     if (gameType == GameTypes.addition) {
       await generator.random();
       await generator.randomAddTotal();
-    } else if (gameType == GameTypes.substraction) {
+    } else if (gameType == GameTypes.subtraction) {
       await generator.randomForSub();
       await generator.randomSubTotal();
     }
@@ -155,12 +160,14 @@ class _ComplexState extends State<Complex> {
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
+          _isHighScore = true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.timeOverMsg,
+          playConfetti: _isHighScore,
         );
       });
     }
@@ -186,7 +193,7 @@ class _ComplexState extends State<Complex> {
       }
       final nextOperation = _rand.nextBool()
           ? GameTypes.addition
-          : GameTypes.substraction;
+          : GameTypes.subtraction;
       _getRandom(nextOperation);
       resetProgress();
       setState(() {
@@ -205,12 +212,14 @@ class _ComplexState extends State<Complex> {
         if (_record > currentRecord) {
           globalRecord = _record;
           updateRecordDatabase(_record);
+          _isHighScore = true;
         }
         alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
           gameMsg: GameOutputTexts.answerWrongMsg,
+          playConfetti: _isHighScore,
         );
       });
     }
