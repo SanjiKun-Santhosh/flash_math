@@ -39,11 +39,13 @@ void main() async {
             return DatabaseService(uid: mathUser.uid);
           },
         ),
-         ChangeNotifierProvider(create: (context){
-          return HiveService();
-        })
+        ChangeNotifierProvider(
+          create: (context) {
+            return HiveService();
+          },
+        ),
       ],
-      child:  Consumer<DatabaseService?>(
+      child: Consumer<DatabaseService?>(
         builder: (context, dbService, child) {
           return StreamProvider<UserRecord?>.value(
             value: dbService?.userData ?? Stream.value(null),
@@ -51,9 +53,9 @@ void main() async {
             child: child,
           );
         },
-        child: MyApp()
-        ),
+        child: MyApp(),
       ),
+    ),
   );
 }
 
@@ -63,10 +65,26 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      routes: {
-        '/home': (context) => const Template(child: Home()),
-        '/userProfile': (context) => const Template(child: UserProfile()),
+      onGenerateRoute: (setting) {
+        switch (setting.name) {
+          case '/home':
+            return CustomNavigation().navigateToDetailScreen(
+              context,
+              const Template(child: Home()),
+            );
+          case '/userProfile':
+            return CustomNavigation().navigateToDetailScreen(
+              context,
+              const Template(child: UserProfile()),
+            );
+          default:
+            return CustomNavigation().navigateToDetailScreen(
+              context,
+              const Template(child: Home()),
+            );
+        }
       },
+
       home: const Wrapper(),
     );
   }

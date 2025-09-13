@@ -1,6 +1,8 @@
 import 'package:flash_math/screens/authenticate.dart';
 import 'package:flash_math/screens/listOfGames.dart';
 import 'package:flash_math/screens/loading.dart';
+import 'package:flash_math/screens/profile/profile.dart';
+import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
@@ -75,7 +77,7 @@ class _HomeState extends State<Home> {
                     children: [
                       InkWell(
                         onTap: () {
-                          Navigator.pushNamed(context, "/userProfile");
+                         Navigator.pushNamed(context, "/userProfile");
                         },
                         child: CircleAvatar(
                           radius: 35,
@@ -89,7 +91,7 @@ class _HomeState extends State<Home> {
                       ),
                       SizedBox(height: 15),
                       Text(
-                        "Welcome ${userRecord!.name}",
+                        "Welcome ${userRecord?.name}",
                         style: TextStyle(fontSize: 30,fontFamily: CustomFontStyle().primaryFont,fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 55),

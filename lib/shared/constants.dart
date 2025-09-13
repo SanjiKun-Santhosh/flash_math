@@ -1,6 +1,8 @@
 import 'package:flash_math/models/game_record.dart';
 import 'package:flutter/material.dart';
 
+import '../screens/home.dart';
+
 class ImageGallery {
   static const primaryBG = "assets/images/primary_bg.jpeg";
   static const secondaryBG = "assets/images/secondary_bg.png";
@@ -93,4 +95,18 @@ final Map<String,GameRecord> gameRecordInitialization={
 };
 
 final List<String> gameTypeObjectList = gameRecordInitialization.keys.toList();
+class CustomNavigation {
+
+PageRouteBuilder navigateToDetailScreen(BuildContext context, Widget widget) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => widget,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+      transitionDuration: Duration(milliseconds: 500),
+  );
+}}
 

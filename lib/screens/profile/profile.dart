@@ -266,7 +266,7 @@ class _UserProfileState extends State<UserProfile> {
                                           _passwordChanged) {
                                         _saveProfileChanges();
                                       } else {
-                                        Navigator.pop(context);
+                                                 Navigator.pop(context);
                                       }
                                     },
                                     icon: const Icon(Icons.save_alt_rounded),

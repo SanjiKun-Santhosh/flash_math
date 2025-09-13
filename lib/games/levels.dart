@@ -170,7 +170,6 @@ class _LevelsState extends State<Levels> {
                                     ),
                                   );
                                 } else {
-                                  print(level);
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute<void>(
