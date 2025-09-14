@@ -154,7 +154,18 @@ class _SubtractionState extends State<Subtraction> {
       }
     });
   }
-
+  void _processAnswer(bool userGuess) {
+    if (_progressValue >= 1.0) {
+      _handleTimeOver();
+      return;
+    }
+    bool isActuallyCorrect = (_firstValue - _secondValue == _total);
+    if (userGuess == isActuallyCorrect) {
+      _handleCorrectAnswer();
+    } else {
+      _handleWrongAnswer();
+    }
+  }
   void _handleTimeOver() {
     if (mounted) {
       setState(() {
@@ -176,7 +187,7 @@ class _SubtractionState extends State<Subtraction> {
     }
   }
 
-  void _handleNewHighScore() {
+  void _handleCorrectAnswer() {
     if (mounted) {
       setState(() {
         _levelCounter++;
@@ -194,7 +205,7 @@ class _SubtractionState extends State<Subtraction> {
     }
   }
 
-  void _handleNotHighScore() {
+  void _handleWrongAnswer() {
     if (mounted) {
       setState(() {
         _isButtonDisabled = true;
@@ -299,38 +310,14 @@ class _SubtractionState extends State<Subtraction> {
                 IconButton(
                   onPressed: _isButtonDisabled
                       ? null
-                      : () {
-                          setState(() {
-                            if (_progressValue >= 1.0) {
-                              _handleTimeOver();
-                            } else {
-                              if (_firstValue - _secondValue != _total) {
-                                _handleNewHighScore();
-                              } else {
-                                _handleNotHighScore();
-                              }
-                            }
-                          });
-                        },
+                      : () => _processAnswer(false),
                   icon: Icon(Icons.close, size: 60),
                 ),
                 SizedBox(width: 60),
                 IconButton(
                   onPressed: _isButtonDisabled
                       ? null
-                      : () {
-                          setState(() {
-                            if (_progressValue >= 1.0) {
-                              _handleTimeOver();
-                            } else {
-                              if (_firstValue - _secondValue == _total) {
-                                _handleNewHighScore();
-                              } else {
-                                _handleNotHighScore();
-                              }
-                            }
-                          });
-                        },
+                      : () => _processAnswer(true),
                   icon: Icon(Icons.check_circle, size: 60),
                 ),
               ],

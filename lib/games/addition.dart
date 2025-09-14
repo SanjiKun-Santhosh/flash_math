@@ -50,7 +50,7 @@ class _AdditionState extends State<Addition> {
   late final UserRecord _streamUserRecord;
   bool _isHighScore = false;
   bool _isInitialized = false;
-  bool _isLevelledUp=false;
+  bool _isLevelledUp = false;
 
   @override
   void initState() {
@@ -142,10 +142,23 @@ class _AdditionState extends State<Addition> {
           _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
           _levelIndex++;
           _levelCounter = 0;
-          _isLevelledUp=true;
+          _isLevelledUp = true;
         }
       }
     });
+  }
+
+  void _processAnswer(bool userGuess) {
+    if (_progressValue >= 1.0) {
+      _handleTimeOver();
+      return;
+    }
+    bool isActuallyCorrect = (_firstValue + _secondValue == _total);
+    if (userGuess == isActuallyCorrect) {
+      _handleCorrectAnswer();
+    } else {
+      _handleWrongAnswer();
+    }
   }
 
   void _handleTimeOver() {
@@ -169,7 +182,7 @@ class _AdditionState extends State<Addition> {
     }
   }
 
-  void _handleNewHighScore() {
+  void _handleCorrectAnswer() {
     if (mounted) {
       setState(() {
         _levelCounter++;
@@ -187,7 +200,7 @@ class _AdditionState extends State<Addition> {
     }
   }
 
-  void _handleNotHighScore() {
+  void _handleWrongAnswer() {
     if (mounted) {
       setState(() {
         _isButtonDisabled = true;
@@ -219,7 +232,9 @@ class _AdditionState extends State<Addition> {
       _selectedGameRecord.record = currentRecord.toString();
       Map<String, GameRecord>? data = _streamUserRecord.gameRecord;
       data?.update(_gameType, (update) => _selectedGameRecord);
-      await _service.updateUserRecord(data!);
+      if (data != null) {
+        await _service.updateUserRecord(data);
+      }
     }
   }
 
@@ -245,7 +260,7 @@ class _AdditionState extends State<Addition> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 30),
-            Text("Question $_record",style: TextStyle(fontSize: 30),),
+            Text("Question $_record", style: TextStyle(fontSize: 30)),
             SizedBox(height: 30),
             Card(
               child: SizedBox(
@@ -298,34 +313,14 @@ class _AdditionState extends State<Addition> {
                 IconButton(
                   onPressed: _isButtonDisabled
                       ? null
-                      : () {
-                          if (_progressValue >= 1.0) {
-                            _handleTimeOver();
-                          } else {
-                            if (_firstValue + _secondValue != _total) {
-                              _handleNewHighScore();
-                            } else {
-                              _handleNotHighScore();
-                            }
-                          }
-                        },
+                      : () => _processAnswer(false),
                   icon: Icon(Icons.close, size: 60),
                 ),
                 SizedBox(width: 60),
                 IconButton(
                   onPressed: _isButtonDisabled
                       ? null
-                      : () {
-                          if (_progressValue >= 1.0) {
-                            _handleTimeOver();
-                          } else {
-                            if (_firstValue + _secondValue == _total) {
-                              _handleNewHighScore();
-                            } else {
-                              _handleNotHighScore();
-                            }
-                          }
-                        },
+                      : () => _processAnswer(true),
                   icon: Icon(Icons.check_circle, size: 60),
                 ),
               ],
@@ -382,15 +377,25 @@ class _AdditionState extends State<Addition> {
                     ],
                   ),
             SizedBox(height: 30),
-            _isLevelledUp ? AnimatedTextKit(animatedTexts: [
-              FlickerAnimatedText(GameOutputTexts.levelUp,textStyle: TextStyle(fontSize: 25,fontFamily: CustomFontStyle().secondaryFont))
-            ],pause: Duration(seconds: 5),
-            onFinished:(){
-              setState(() {
-                _isLevelledUp=false;
-              });
-            } ,
-            ) : Container(),
+            _isLevelledUp
+                ? AnimatedTextKit(
+                    animatedTexts: [
+                      FlickerAnimatedText(
+                        GameOutputTexts.levelUp,
+                        textStyle: TextStyle(
+                          fontSize: 25,
+                          fontFamily: CustomFontStyle().secondaryFont,
+                        ),
+                      ),
+                    ],
+                    pause: Duration(seconds: 5),
+                    onFinished: () {
+                      setState(() {
+                        _isLevelledUp = false;
+                      });
+                    },
+                  )
+                : Container(),
           ],
         ),
       ),
