@@ -123,6 +123,16 @@ class _RegisterState extends State<Register> {
                                   _currentEmail,
                                   _currentPassword,
                                 );
+                            if (!mounted) return;
+                            setState(() {
+                              _loading = false;
+                              if (!result.isSuccess) {
+                                ErrorHandling().showError(
+                                  context,
+                                  result.errorMsg,
+                                );
+                              }
+                            });
                           }
                         },
 
@@ -193,11 +203,12 @@ class _RegisterState extends State<Register> {
                               dynamic result = await _auth.signInWithGoogle();
                               if (!mounted) return;
                               setState(() {
-                                if (result == null ||
-                                    result.toString().contains("error")) {
-                                  CustomSheets().showLoginErrorDialog(context);
-                                } else {
-                                  _loading = false;
+                                _loading = false;
+                                if (!result.isSuccess) {
+                                  ErrorHandling().showError(
+                                    context,
+                                    result.errorMsg,
+                                  );
                                 }
                               });
                             },

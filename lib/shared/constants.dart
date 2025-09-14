@@ -110,3 +110,11 @@ PageRouteBuilder navigateToDetailScreen(BuildContext context, Widget widget) {
   );
 }}
 
+class ErrorHandling{
+  void showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Center(child: Text(message,textAlign:TextAlign.center,style: TextStyle(fontSize: 30),)), backgroundColor: Colors.red),
+    );
+  }
+}
+

@@ -48,17 +48,23 @@ class _UserProfileState extends State<UserProfile> {
         context.read<HiveService>().loadProfileImage(mathUser.uid);
       }
       if (userRecord != null && _textNameController.text.isEmpty) {
-        _textNameController.text = userRecord.name.isEmpty
-            ? "Player"
-            : userRecord.name;
+        setState(() {
+          _textNameController.text = userRecord.name.isEmpty
+              ? "Player"
+              : userRecord.name;
+        });
+
       }
     });
 
     if (_textEmailController.text.isEmpty) {
       _auth.getEmail().then((email) {
-        if (mounted) {
-          _textEmailController.text = email ?? '';
-        }
+
+       setState(() {
+         if (mounted) {
+           _textEmailController.text = email ?? '';
+         }
+       });
       });
     }
   }
@@ -88,6 +94,7 @@ class _UserProfileState extends State<UserProfile> {
 
     try {
       if (_nameChanged) {
+        print(_textNameController.text);
         await _auth.updateName(_textNameController.text);
       }
       if (_emailChanged && _passwordChanged) {

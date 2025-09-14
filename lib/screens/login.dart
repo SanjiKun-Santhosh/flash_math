@@ -17,8 +17,8 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final Auth _auth = Auth();
   final formKey = GlobalKey<FormState>();
-  String _currentEmail = ""; // Initialize to empty
-  String _currentPassword = ""; // Initialize to empty
+  String _currentEmail = "";
+  String _currentPassword = "";
   final RegExp _regex = RegExp(
     r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;\$\~])',
   );
@@ -27,7 +27,6 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
@@ -131,15 +130,17 @@ class _LoginState extends State<Login> {
                                   _currentEmail,
                                   _currentPassword,
                                 );
-              
+
                             if (!mounted) return;
-              
+
                             setState(() {
                               _loading = false;
-                              if (result == null ||
-                                  result.toString().contains("error")) {
-                                CustomSheets().showLoginErrorDialog(context);
-                              } else {}
+                              if (!result.isSuccess) {
+                                ErrorHandling().showError(
+                                  context,
+                                  result.errorMsg,
+                                );
+                              }
                             });
                           }
                         },
@@ -166,11 +167,12 @@ class _LoginState extends State<Login> {
                           dynamic result = _auth.loginInAnonymously();
                           if (!mounted) return;
                           setState(() {
-                            if (result == null ||
-                                result.toString().contains("error")) {
-                              CustomSheets().showLoginErrorDialog(context);
-                            } else {
-                              _loading = false;
+                            _loading = false;
+                            if (!result.isSuccess) {
+                              ErrorHandling().showError(
+                                context,
+                                result.errorMsg,
+                              );
                             }
                           });
                         },
@@ -206,7 +208,7 @@ class _LoginState extends State<Login> {
                         ],
                       ),
                       SizedBox(height: 30),
-              
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: <Widget>[
@@ -232,11 +234,12 @@ class _LoginState extends State<Login> {
                               dynamic result = await _auth.signInWithGoogle();
                               if (!mounted) return;
                               setState(() {
-                                if (result == null ||
-                                    result.toString().contains("error")) {
-                                  CustomSheets().showLoginErrorDialog(context);
-                                } else {
-                                  _loading = false;
+                                _loading = false;
+                                if (!result.isSuccess) {
+                                  ErrorHandling().showError(
+                                    context,
+                                    result.errorMsg,
+                                  );
                                 }
                               });
                             },

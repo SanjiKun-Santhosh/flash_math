@@ -1,6 +1,7 @@
 import 'dart:core';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flash_math/shared/authresult.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart';
@@ -33,8 +34,11 @@ class Auth {
         uid: user!.uid,
       ).addUserData("Player", gameRecordInitialization);
       return _userFromFireBase(user);
-    } catch (e) {
-      return null;
+    }on FirebaseException catch (e){
+      return AuthResult.failure(_mapErrorCodeToMessage(e));
+    }
+    catch (e) {
+      return AuthResult.failure("Unexpected error occurred: $e");
     }
   }
 
@@ -48,7 +52,7 @@ class Auth {
     }
   }
 
-  Future<MathUser?> linkAnonymousWithCredentials(
+  Future linkAnonymousWithCredentials(
     String email,
     String password,
   ) async {
@@ -62,8 +66,11 @@ class Auth {
       User? user = userCredential?.user;
 
       return _userFromFireBase(user);
-    } on FirebaseAuthException catch (e) {
-      return null;
+    }on FirebaseException catch (e){
+      return AuthResult.failure(_mapErrorCodeToMessage(e));
+    }
+    catch (e) {
+      return AuthResult.failure("Unexpected error occurred: $e");
     }
   }
 
@@ -75,8 +82,11 @@ class Auth {
       );
       User? user = credential.user;
       return _userFromFireBase(user);
-    } catch (e) {
-      return null;
+    } on FirebaseException catch (e){
+      return AuthResult.failure(_mapErrorCodeToMessage(e));
+    }
+    catch (e) {
+      return AuthResult.failure("Unexpected error occurred: $e");
     }
   }
 
@@ -92,8 +102,11 @@ class Auth {
       ).addUserData("Player", gameRecordInitialization);
 
       return _userFromFireBase(user);
-    } catch (e) {
-      return null;
+    } on FirebaseException catch (e){
+      return AuthResult.failure(_mapErrorCodeToMessage(e));
+    }
+    catch (e) {
+      return AuthResult.failure("Unexpected error occurred: $e");
     }
   }
 
@@ -102,8 +115,11 @@ class Auth {
       User? user = _auth.currentUser;
       dynamic result = await DatabaseService(uid: user!.uid).updateName(name);
       return result;
-    } catch (e) {
-      return null;
+    } on FirebaseException catch (e){
+      return AuthResult.failure(_mapErrorCodeToMessage(e));
+    }
+    catch (e) {
+      return AuthResult.failure("Unexpected error occurred: $e");
     }
   }
 
@@ -119,14 +135,18 @@ class Auth {
           await user!.updatePassword(password);
         }
         return _userFromFireBase(user);
-      } catch (e) {
-        return null;
+      } on FirebaseException catch (e){
+        return AuthResult.failure(_mapErrorCodeToMessage(e));
+      }
+      catch (e) {
+        return AuthResult.failure("Unexpected error occurred: $e");
       }
     } else {
       return linkAnonymousWithCredentials(email, password);
     }
   }
-  Future updatePassword(String password) async{
+
+  Future updatePassword(String password) async {
     if (await _checkAnonymousUser() == false) {
       try {
         User? user = _auth.currentUser;
@@ -134,23 +154,29 @@ class Auth {
           await user!.updatePassword(password);
         }
         return _userFromFireBase(user);
-      } catch (e) {
-        return null;
+      } on FirebaseException catch (e){
+        return AuthResult.failure(_mapErrorCodeToMessage(e));
+      }
+      catch (e) {
+        return AuthResult.failure("Unexpected error occurred: $e");
       }
     }
-
   }
-  Future updateEmail(String email)async{
-    if(await _checkAnonymousUser()==false){
-      try{
-        User? user=_auth.currentUser;
-        String? currentEmail=user?.email;
-        if(email!=currentEmail && email.isNotEmpty){
+
+  Future updateEmail(String email) async {
+    if (await _checkAnonymousUser() == false) {
+      try {
+        User? user = _auth.currentUser;
+        String? currentEmail = user?.email;
+        if (email != currentEmail && email.isNotEmpty) {
           await user!.verifyBeforeUpdateEmail(email);
         }
         return _userFromFireBase(user);
-      }catch(e){
-        return null;
+      } on FirebaseException catch (e){
+        return AuthResult.failure(_mapErrorCodeToMessage(e));
+      }
+      catch (e) {
+        return AuthResult.failure("Unexpected error occurred: $e");
       }
     }
   }
@@ -258,6 +284,21 @@ class Auth {
       print("catch block");
       print("The silent signin has failed! ${e.toString()}");
       return null;
+    }
+  }
+
+  String _mapErrorCodeToMessage(FirebaseException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return "No user found for this email";
+      case 'wrong-password':
+        return "Invalid password";
+      case 'email-already-in-use':
+        return "This email is already registered";
+      case 'weak-password':
+        return "Please enter a strong password";
+      default:
+        return e.message ?? "Authentication failed";
     }
   }
 }

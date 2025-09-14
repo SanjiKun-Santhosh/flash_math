@@ -1,8 +1,6 @@
 import 'package:flash_math/screens/authenticate.dart';
 import 'package:flash_math/screens/listOfGames.dart';
 import 'package:flash_math/screens/loading.dart';
-import 'package:flash_math/screens/profile/profile.dart';
-import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
@@ -21,24 +19,36 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final Auth _auth = Auth();
   bool _loading = false;
+  String _userName="Player";
 
   @override
   void initState() {
     super.initState();
+
+  }
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mathUser = context.read<MathUser?>();
-
+      final userRecord = context.read<UserRecord?>();
       if (mathUser != null) {
         context.read<HiveService>().loadProfileImage(mathUser.uid);
       }
+      if(userRecord!=null){
+        setState(() {
+          _userName=userRecord.name;
+        });
+      }
     });
+
   }
 
   @override
   Widget build(BuildContext context) {
     final mathUser = context.watch<MathUser?>();
     final hiveService = context.watch<HiveService>();
-    final userRecord = Provider.of<UserRecord?>(context);
     if (mathUser != null) {
       return _loading
           ? Loading()
@@ -91,7 +101,7 @@ class _HomeState extends State<Home> {
                       ),
                       SizedBox(height: 15),
                       Text(
-                        "Welcome ${userRecord?.name}",
+                        "Welcome $_userName",
                         style: TextStyle(fontSize: 30,fontFamily: CustomFontStyle().primaryFont,fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 55),
