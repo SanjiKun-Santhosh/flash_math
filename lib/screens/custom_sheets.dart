@@ -12,7 +12,7 @@ class CustomSheets {
     required String outputText,
     required int record,
     required String gameMsg,
-        required bool playConfetti,
+    required bool playConfetti,
   }) {
     showModalBottomSheet(
       elevation: 2.0,
@@ -21,82 +21,80 @@ class CustomSheets {
       builder: (context) {
         return Stack(
           children: [
-
             Container(
-            padding: EdgeInsets.all(15),
-            child: Column(
-              children: [
-
-                AlertDialog(
-                  title: Text(
-                    gameMsg,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 35),
-                  ),
-                  content: Center(
-                    child: const Text(
-                      GameOutputTexts.playAgain,
+              padding: EdgeInsets.all(15),
+              child: Column(
+                children: [
+                  AlertDialog(
+                    title: Text(
+                      gameMsg,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 20),
+                      style: TextStyle(fontSize: 35),
                     ),
-                  ),
-                  actionsAlignment: MainAxisAlignment.center,
-                  actions: <Widget>[
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepOrange[300],
-                        foregroundColor: Colors.white,
-                        textStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontStyle: FontStyle.normal,
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Template(child: Home()),
-                          ),
-                          (Route<dynamic> route) => false,
-                        );
-                      },
-
+                    content: Center(
                       child: const Text(
-                        'OK',
+                        GameOutputTexts.playAgain,
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 20),
                       ),
                     ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    Text(
-                      outputText,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    AnimatedTextKit(
-                      repeatForever: true,
-                      animatedTexts: [
-
-                        FlickerAnimatedText(
-                          record.toString(),
-                          textStyle: TextStyle(
-                            fontSize: 45,
-                            fontWeight: FontWeight.bold,
+                    actionsAlignment: MainAxisAlignment.center,
+                    actions: <Widget>[
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepOrange[300],
+                          foregroundColor: Colors.white,
+                          textStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontStyle: FontStyle.normal,
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+                        onPressed: () {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const Template(child: Home()),
+                            ),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
+
+                        child: const Text(
+                          'OK',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        outputText,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      AnimatedTextKit(
+                        repeatForever: true,
+                        animatedTexts: [
+                          FlickerAnimatedText(
+                            record.toString(),
+                            textStyle: TextStyle(
+                              fontSize: 45,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
             Confetti(isPlaying: playConfetti),
-          ]
+          ],
         );
       },
     );
@@ -116,6 +114,47 @@ class CustomSheets {
                 Navigator.of(dialogContext).pop();
               },
             ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<String?> showLevelUp(BuildContext context, String levelName) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Stack(
+
+          children: [
+            Container(
+
+              padding: EdgeInsets.all(5),
+              child: AlertDialog(
+                title: Center(child: Text("Level Up!",style: TextStyle(fontSize: 28),)),
+                content: Text(textAlign: TextAlign.center,
+                  "Congratulations! You have reached level $levelName.",
+                    style: TextStyle(fontSize: 23)
+                ),
+                actionsAlignment: MainAxisAlignment.spaceEvenly,
+                elevation: 3.0,
+                actions: <Widget>[
+                  TextButton(
+                    child: Text("Exit",style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold)),
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop("exit");
+                    },
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop("continue");
+                    },
+                    child: Text("Continue playing",style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+            Confetti(isPlaying: true),
           ],
         );
       },

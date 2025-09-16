@@ -28,7 +28,6 @@ class _HomeState extends State<Home> {
   }
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mathUser = context.read<MathUser?>();
@@ -65,10 +64,17 @@ class _HomeState extends State<Home> {
                         setState(() {
                           _loading = true;
                         });
-                        await _auth.signOutMethod();
+                        dynamic result=await _auth.signOutMethod();
                         setState(() {
                           _loading = false;
+                          if (result.isFailure) {
+                            ErrorHandling().showError(
+                              context,
+                              result.errorMsg,
+                            );
+                          }
                         });
+
                       },
                       icon: Icon(Icons.logout_rounded),
                       label: Text("Logout"),

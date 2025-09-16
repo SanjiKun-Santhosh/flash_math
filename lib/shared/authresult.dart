@@ -1,11 +1,17 @@
 import 'package:flash_math/services/auth.dart';
 
-class AuthResult{
+class AuthResult<T> {
   final bool isSuccess;
   final String? errorMsg;
-  AuthResult._(this.isSuccess, this.errorMsg);
+  final T? data;
 
-  factory AuthResult.success()=>AuthResult._(true, null);
-  factory AuthResult.failure(String message)=>AuthResult._(false, message);
+  const AuthResult._({required this.isSuccess, this.data, this.errorMsg});
 
+  factory AuthResult.success(T data) =>
+      AuthResult._(isSuccess: true, data: data);
+
+  factory AuthResult.failure(String message) =>
+      AuthResult._(isSuccess: false, errorMsg: message);
+
+  bool get isFailure => !isSuccess;
 }

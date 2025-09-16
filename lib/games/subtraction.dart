@@ -187,25 +187,42 @@ class _SubtractionState extends State<Subtraction> {
     }
   }
 
-  void _handleCorrectAnswer() {
-    if (mounted) {
-      setState(() {
-        _levelCounter++;
-        if (_levelCounter > _levelUpAt &&
-            _levelIndex <= 5 &&
-            widget.levelType != practiceLevel) {
-          _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
-              true;
-          _levelUp(_levelIndex);
-        }
-        _getRandom();
-        _record++;
-        resetProgress();
-      });
+  Future<void> _handleCorrectAnswer() async {
+    if (!mounted) {
+      return;
     }
+    setState(() {
+      _levelCounter++;
+      _record++;
+    });
+    if (_levelCounter > _levelUpAt &&
+        _levelIndex <= 5 &&
+        widget.levelType != practiceLevel) {
+      setState(() {
+        _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
+        true;
+        _levelUp(_levelIndex);
+      });
+      stopProgress();
+      String? result = await CustomSheets().showLevelUp(
+        context,
+        _levelIndex.toString(),
+      );
+      if (result == "exit") {
+        _handleWrongAnswer(gameMessage: GameOutputTexts.onFire);
+        return;
+      }
+    }
+    setState(() {
+      _getRandom();
+
+      resetProgress();
+    });
   }
 
-  void _handleWrongAnswer() {
+  void _handleWrongAnswer({
+    String gameMessage = GameOutputTexts.answerWrongMsg,
+  }) {
     if (mounted) {
       setState(() {
         _isButtonDisabled = true;
@@ -219,7 +236,7 @@ class _SubtractionState extends State<Subtraction> {
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
-          gameMsg: GameOutputTexts.answerWrongMsg,
+          gameMsg: gameMessage,
           playConfetti: _isHighScore,
         );
       });
@@ -257,7 +274,7 @@ class _SubtractionState extends State<Subtraction> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 30),
-            Text("Question $_record", style: TextStyle(fontSize: 30)),
+            Text("Question ${_record+1}", style: TextStyle(fontSize: 30)),
             SizedBox(height: 30),
             Card(
               child: SizedBox(

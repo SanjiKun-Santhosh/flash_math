@@ -26,6 +26,7 @@ class _LoginState extends State<Login> {
 
   @override
   void initState() {
+    _auth.attemptSilentSignIn();
     super.initState();
   }
 
@@ -135,7 +136,7 @@ class _LoginState extends State<Login> {
 
                             setState(() {
                               _loading = false;
-                              if (!result.isSuccess) {
+                              if (result.isFailure) {
                                 ErrorHandling().showError(
                                   context,
                                   result.errorMsg,
@@ -168,7 +169,7 @@ class _LoginState extends State<Login> {
                           if (!mounted) return;
                           setState(() {
                             _loading = false;
-                            if (!result.isSuccess) {
+                            if (result.isFailure) {
                               ErrorHandling().showError(
                                 context,
                                 result.errorMsg,
@@ -235,7 +236,7 @@ class _LoginState extends State<Login> {
                               if (!mounted) return;
                               setState(() {
                                 _loading = false;
-                                if (!result.isSuccess) {
+                                if (result.isFailure) {
                                   ErrorHandling().showError(
                                     context,
                                     result.errorMsg,

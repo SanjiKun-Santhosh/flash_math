@@ -55,7 +55,7 @@ class _FlashState extends State<Flash> {
   GameTypes _currentOperation = GameTypes.addition;
   bool _isButtonChanged = false;
   bool _isHighScore = false;
-  bool _isLevelledUp=false;
+  bool _isLevelledUp = false;
 
   @override
   void initState() {
@@ -153,7 +153,7 @@ class _FlashState extends State<Flash> {
           _timerSpeed = int.parse(levelList[levelListKeys[levelIndex - 1]]!);
           _levelIndex++;
           _levelCounter = 0;
-          _isLevelledUp=true;
+          _isLevelledUp = true;
         }
       }
     });
@@ -180,7 +180,7 @@ class _FlashState extends State<Flash> {
     }
   }
 
-  void _submitAnswer(bool userThinksEquationIsCorrect) {
+  Future<void> _submitAnswer(bool userThinksEquationIsCorrect) async {
     if (_progressValue >= 1.0) {
       _handleTimeOver();
       return;
@@ -194,9 +194,20 @@ class _FlashState extends State<Flash> {
       if (_levelCounter > _levelUpAt &&
           _levelIndex <= 5 &&
           widget.levelType != practiceLevel) {
-        _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
-            true;
-        _levelUp(_levelIndex);
+        setState(() {
+          _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
+              true;
+          _levelUp(_levelIndex);
+        });
+        stopProgress();
+        String? result = await CustomSheets().showLevelUp(
+          context,
+          _levelIndex.toString(),
+        );
+        if (result == "exit") {
+          _handleWrongAnswer(gameMessage: GameOutputTexts.onFire);
+          return;
+        }
       }
       final nextOperation = _rand.nextBool()
           ? GameTypes.addition
@@ -208,11 +219,13 @@ class _FlashState extends State<Flash> {
         _currentOperation = nextOperation;
       });
     } else {
-      _handleNotHighScore();
+      _handleWrongAnswer();
     }
   }
 
-  void _handleNotHighScore() {
+  void _handleWrongAnswer({
+    String gameMessage = GameOutputTexts.answerWrongMsg,
+  }) {
     if (mounted) {
       setState(() {
         _isButtonDisabled = true;
@@ -226,7 +239,7 @@ class _FlashState extends State<Flash> {
           context,
           outputText: GameOutputTexts.personalBest,
           record: globalRecord,
-          gameMsg: GameOutputTexts.answerWrongMsg,
+          gameMsg: gameMessage,
           playConfetti: _isHighScore,
         );
       });
@@ -270,7 +283,7 @@ class _FlashState extends State<Flash> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 30),
-            Text("Question $_record",style: TextStyle(fontSize: 30),),
+            Text("Question ${_record + 1}", style: TextStyle(fontSize: 30)),
             SizedBox(height: 30),
             Card(
               child: SizedBox(
@@ -410,15 +423,25 @@ class _FlashState extends State<Flash> {
                     ],
                   ),
             SizedBox(height: 30),
-            _isLevelledUp ? AnimatedTextKit(animatedTexts: [
-              FlickerAnimatedText(GameOutputTexts.levelUp,textStyle: TextStyle(fontSize: 25,fontFamily: CustomFontStyle().secondaryFont))
-            ],pause: Duration(seconds: 5),
-              onFinished:(){
-                setState(() {
-                  _isLevelledUp=false;
-                });
-              } ,
-            ) : Container(),
+            _isLevelledUp
+                ? AnimatedTextKit(
+                    animatedTexts: [
+                      FlickerAnimatedText(
+                        GameOutputTexts.levelUp,
+                        textStyle: TextStyle(
+                          fontSize: 25,
+                          fontFamily: CustomFontStyle().secondaryFont,
+                        ),
+                      ),
+                    ],
+                    pause: Duration(seconds: 5),
+                    onFinished: () {
+                      setState(() {
+                        _isLevelledUp = false;
+                      });
+                    },
+                  )
+                : Container(),
           ],
         ),
       ),

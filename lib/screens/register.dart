@@ -126,7 +126,7 @@ class _RegisterState extends State<Register> {
                             if (!mounted) return;
                             setState(() {
                               _loading = false;
-                              if (!result.isSuccess) {
+                              if (result.isFailure) {
                                 ErrorHandling().showError(
                                   context,
                                   result.errorMsg,
@@ -204,7 +204,7 @@ class _RegisterState extends State<Register> {
                               if (!mounted) return;
                               setState(() {
                                 _loading = false;
-                                if (!result.isSuccess) {
+                                if (result.isFailure) {
                                   ErrorHandling().showError(
                                     context,
                                     result.errorMsg,

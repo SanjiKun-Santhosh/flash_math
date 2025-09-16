@@ -26,14 +26,14 @@ class Auth {
     return _auth.authStateChanges().map(_userFromFireBase);
   }
 
-  Future loginInAnonymously() async {
+  Future<AuthResult<MathUser?>> loginInAnonymously() async {
     try {
       UserCredential credential = await _auth.signInAnonymously();
       User? user = credential.user;
       await DatabaseService(
         uid: user!.uid,
       ).addUserData("Player", gameRecordInitialization);
-      return _userFromFireBase(user);
+      return AuthResult.success(_userFromFireBase(user));
     }on FirebaseException catch (e){
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     }
@@ -42,7 +42,7 @@ class Auth {
     }
   }
 
-  Future<bool> _checkAnonymousUser() async {
+  Future<bool> checkAnonymousUser() async {
     final user = _auth.currentUser;
     if (user != null) {
       final isUserAnon = user.isAnonymous;
@@ -52,7 +52,7 @@ class Auth {
     }
   }
 
-  Future linkAnonymousWithCredentials(
+  Future<AuthResult<MathUser?>> linkAnonymousWithCredentials(
     String email,
     String password,
   ) async {
@@ -65,7 +65,7 @@ class Auth {
       final userCredential = await currentUser?.linkWithCredential(credential);
       User? user = userCredential?.user;
 
-      return _userFromFireBase(user);
+      return AuthResult.success(_userFromFireBase(user));
     }on FirebaseException catch (e){
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     }
@@ -74,14 +74,14 @@ class Auth {
     }
   }
 
-  Future loginWithEmailAndPassword(String email, String password) async {
+  Future<AuthResult<MathUser?>> loginWithEmailAndPassword(String email, String password) async {
     try {
       UserCredential credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
       User? user = credential.user;
-      return _userFromFireBase(user);
+      return AuthResult.success(_userFromFireBase(user));
     } on FirebaseException catch (e){
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     }
@@ -90,7 +90,7 @@ class Auth {
     }
   }
 
-  Future registerWithEmailAndPassword(String email, String password) async {
+  Future <AuthResult<MathUser?>> registerWithEmailAndPassword(String email, String password) async {
     try {
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -101,7 +101,7 @@ class Auth {
         uid: user!.uid,
       ).addUserData("Player", gameRecordInitialization);
 
-      return _userFromFireBase(user);
+      return AuthResult.success(_userFromFireBase(user));
     } on FirebaseException catch (e){
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     }
@@ -110,11 +110,11 @@ class Auth {
     }
   }
 
-  Future updateName(String name) async {
+  Future <AuthResult<dynamic>> updateName(String name) async {
     try {
       User? user = _auth.currentUser;
       dynamic result = await DatabaseService(uid: user!.uid).updateName(name);
-      return result;
+      return AuthResult.success(result);
     } on FirebaseException catch (e){
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     }
@@ -123,8 +123,8 @@ class Auth {
     }
   }
 
-  Future updateUserEmailAndPassword(String email, String password) async {
-    if (await _checkAnonymousUser() == false) {
+  Future <AuthResult<MathUser?>> updateUserEmailAndPassword(String email, String password) async {
+    if (await checkAnonymousUser() == false) {
       try {
         User? user = _auth.currentUser;
         String? currentEmail = user?.email;
@@ -134,7 +134,7 @@ class Auth {
         if (password.isNotEmpty) {
           await user!.updatePassword(password);
         }
-        return _userFromFireBase(user);
+        return AuthResult.success(_userFromFireBase(user));
       } on FirebaseException catch (e){
         return AuthResult.failure(_mapErrorCodeToMessage(e));
       }
@@ -146,38 +146,42 @@ class Auth {
     }
   }
 
-  Future updatePassword(String password) async {
-    if (await _checkAnonymousUser() == false) {
+  Future <AuthResult<MathUser?>> updatePassword(String password) async {
+    if (await checkAnonymousUser() == false) {
       try {
         User? user = _auth.currentUser;
         if (password.isNotEmpty) {
           await user!.updatePassword(password);
         }
-        return _userFromFireBase(user);
+         return AuthResult.success(_userFromFireBase(user));
       } on FirebaseException catch (e){
         return AuthResult.failure(_mapErrorCodeToMessage(e));
       }
       catch (e) {
         return AuthResult.failure("Unexpected error occurred: $e");
       }
+    }else{
+      return AuthResult.failure("Something wrong! cannot update password");
     }
   }
 
-  Future updateEmail(String email) async {
-    if (await _checkAnonymousUser() == false) {
+  Future <AuthResult<MathUser?>> updateEmail(String email) async {
+    if (await checkAnonymousUser() == false) {
       try {
         User? user = _auth.currentUser;
         String? currentEmail = user?.email;
         if (email != currentEmail && email.isNotEmpty) {
           await user!.verifyBeforeUpdateEmail(email);
         }
-        return _userFromFireBase(user);
+        return AuthResult.success(_userFromFireBase(user));
       } on FirebaseException catch (e){
         return AuthResult.failure(_mapErrorCodeToMessage(e));
       }
       catch (e) {
         return AuthResult.failure("Unexpected error occurred: $e");
       }
+    }else{
+      return AuthResult.failure("Something wrong! cannot update email");
     }
   }
 
@@ -191,23 +195,27 @@ class Auth {
     return user?.uid;
   }
 
-  Future<void> signOutMethod() async {
+  Future<AuthResult<void>> signOutMethod() async {
     try {
       if (_isGoogleSignInInitialized) {
         await _googleSignIn.signOut();
       }
       await _auth.signOut();
-    } catch (e) {
-      return;
+      return AuthResult.success(null);
+    } on Exception catch (e){
+      return AuthResult.failure("Unexpected error occurred: $e");
+
     }
   }
 
-  Future<void> _initializeGoogleSignIn() async {
+  Future<AuthResult<void>> _initializeGoogleSignIn() async {
     try {
       await _googleSignIn.initialize(serverClientId: _serverClientId);
       _isGoogleSignInInitialized = true;
-    } catch (e) {
-      return;
+      return AuthResult.success(null);
+    }  on Exception catch (e){
+      return AuthResult.failure("Unexpected error occurred: $e");
+
     }
   }
 
@@ -234,7 +242,7 @@ class Auth {
     return userCredential;
   }
 
-  Future<MathUser?> signInWithGoogle() async {
+  Future<AuthResult<MathUser?>> signInWithGoogle() async {
     _ensureGoogleSignInInitialized();
     try {
       final GoogleSignInAccount account = await _googleSignIn.authenticate(
@@ -253,37 +261,33 @@ class Auth {
         ).addUserData("Player", gameRecordInitialization);
       }
 
-      return _userFromFireBase(user);
+      return AuthResult.success(_userFromFireBase(user));
     } on GoogleSignInException catch (e) {
-      print(
-        'Google Sign In error: code: ${e.code.name} description:${e.description} details:${e.details}, error: $e',
-      );
-      rethrow;
-    } catch (error) {
-      print('Unexpected Google Sign-In error: $error');
-      rethrow;
+      return AuthResult.failure("Google Sign-In failed: ${e.code.name}");
+    }
+    catch (e) {
+      return AuthResult.failure("Google Sign-In failed ${e.toString()}");
     }
   }
 
-  Future<MathUser?> attemptSilentSignIn() async {
+  Future<AuthResult<MathUser?>> attemptSilentSignIn() async {
     await _ensureGoogleSignInInitialized();
     try {
       final GoogleSignInAccount? account = await _googleSignIn
           .attemptLightweightAuthentication();
-      print("try block");
-      if (account == null) {
+      if (account != null) {
         final UserCredential userCredential = await _googleSignInSupport(
-          account!,
+          account,
         );
 
-        return _userFromFireBase(userCredential.user);
+        return  AuthResult.success(_userFromFireBase(userCredential.user));
       } else {
-        return null;
+        return AuthResult.failure("Google Sign-In failed");
       }
-    } catch (e) {
-      print("catch block");
-      print("The silent signin has failed! ${e.toString()}");
-      return null;
+    } on GoogleSignInException catch (e) {
+      return AuthResult.failure(e.code.name);
+    }catch (e) {
+      return AuthResult.failure("Google Sign-In failed ${e.toString()}");
     }
   }
 

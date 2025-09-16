@@ -30,6 +30,7 @@ class _UserProfileState extends State<UserProfile> {
   bool _nameChanged = false;
   bool _emailChanged = false;
   bool _passwordChanged = false;
+  bool _isAnonymous = false;
   final RecordBottomSheet recordBottomSheet = RecordBottomSheet();
   final RegExp _passwordRegex = RegExp(
     r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;\$\~])',
@@ -46,6 +47,11 @@ class _UserProfileState extends State<UserProfile> {
       final userRecord = context.read<UserRecord?>();
       if (mathUser != null) {
         context.read<HiveService>().loadProfileImage(mathUser.uid);
+        _auth.checkAnonymousUser().then((value) {
+          setState(() {
+            _isAnonymous = value;
+          });
+        });
       }
       if (userRecord != null && _textNameController.text.isEmpty) {
         setState(() {
@@ -53,18 +59,16 @@ class _UserProfileState extends State<UserProfile> {
               ? "Player"
               : userRecord.name;
         });
-
       }
     });
 
     if (_textEmailController.text.isEmpty) {
       _auth.getEmail().then((email) {
-
-       setState(() {
-         if (mounted) {
-           _textEmailController.text = email ?? '';
-         }
-       });
+        setState(() {
+          if (mounted) {
+            _textEmailController.text = email ?? '';
+          }
+        });
       });
     }
   }
@@ -93,22 +97,30 @@ class _UserProfileState extends State<UserProfile> {
     setState(() => _loading = true);
 
     try {
+      if (_isAnonymous) {
+        if (_emailChanged && _passwordChanged) {
+          await _auth.updateUserEmailAndPassword(
+            _textEmailController.text,
+            _textPasswordController.text,
+          );
+        }
+        _auth.checkAnonymousUser().then((value) {
+          setState(() {
+            _isAnonymous = value;
+          });
+        });
+      } else {
+        if (_passwordChanged) {
+          await _auth.updatePassword(_textPasswordController.text);
+        }
+        if (_emailChanged) {
+          _auth.updateEmail(_textEmailController.text);
+        }
+      }
       if (_nameChanged) {
-        print(_textNameController.text);
         await _auth.updateName(_textNameController.text);
       }
-      if (_emailChanged && _passwordChanged) {
-        await _auth.updateUserEmailAndPassword(
-          _textEmailController.text,
-          _textPasswordController.text,
-        );
-      }
-      if (_passwordChanged) {
-        await _auth.updatePassword(_textPasswordController.text);
-      }
-      if (_emailChanged) {
-        _auth.updateEmail(_textEmailController.text);
-      }
+
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
@@ -273,7 +285,7 @@ class _UserProfileState extends State<UserProfile> {
                                           _passwordChanged) {
                                         _saveProfileChanges();
                                       } else {
-                                                 Navigator.pop(context);
+                                        Navigator.pop(context);
                                       }
                                     },
                                     icon: const Icon(Icons.save_alt_rounded),
