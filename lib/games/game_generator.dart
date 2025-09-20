@@ -44,6 +44,7 @@ class _GameGeneratorState extends State<GameGenerator> {
   int _record = 0;
   double _progressValue = 0.0;
   Timer? _timer;
+  bool _isButtonChanged = false;
   bool _isButtonDisabled = false;
   String _gameType = "";
   late final String _gameTypeForDBProcessing;
@@ -58,7 +59,7 @@ class _GameGeneratorState extends State<GameGenerator> {
   bool _isInitialized = false;
   bool _isLevelledUp = false;
   late Widget _operatorWidget;
-  final List<String>_listOfGameTypes = ["addition", "subtraction", "multiply"];
+  final List<String> _listOfGameTypes = ["addition", "subtraction", "multiply"];
 
   @override
   void initState() {
@@ -139,11 +140,15 @@ class _GameGeneratorState extends State<GameGenerator> {
         await generator.randomAddTotal();
         break;
     }
+    final bool isButtonChangeOperation = _rand.nextBool();
     if (mounted) {
       setState(() {
         _firstValue = generator.firstValue;
         _secondValue = generator.secondValue;
         _total = generator.total;
+        if (_gameTypeForDBProcessing == GameTypes.flash.name) {
+          _isButtonChanged = isButtonChangeOperation;
+        }
       });
     }
   }
@@ -234,7 +239,7 @@ class _GameGeneratorState extends State<GameGenerator> {
       _total,
     );
     if (userGuess == isActuallyCorrect) {
-      if (_gameTypeForDBProcessing == GameTypes.complex.name) {
+      if (_gameTypeForDBProcessing == GameTypes.complex.name || _gameTypeForDBProcessing == GameTypes.flash.name) {
         int randomIndex = _rand.nextInt(_listOfGameTypes.length);
         _gameType = _listOfGameTypes[randomIndex].toLowerCase();
       }
@@ -392,22 +397,40 @@ class _GameGeneratorState extends State<GameGenerator> {
                 ),
               ),
             ),
-            SizedBox(height: 30),
-            Row(
+            SizedBox(height: 30),_isButtonChanged
+                ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: _isButtonDisabled
+                      ? null
+                      : () => _processAnswer(true),
+                  icon: const Icon(Icons.check_circle, size: 60),
+                ),
+                const SizedBox(width: 60),
+                IconButton(
+                  onPressed: _isButtonDisabled
+                      ? null
+                      : () => _processAnswer(false),
+                  icon: const Icon(Icons.close, size: 60),
+                ),
+              ],
+            )
+                : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
                   onPressed: _isButtonDisabled
                       ? null
                       : () => _processAnswer(false),
-                  icon: Icon(Icons.close, size: 60),
+                  icon: const Icon(Icons.close, size: 60),
                 ),
-                SizedBox(width: 60),
+                const SizedBox(width: 60),
                 IconButton(
                   onPressed: _isButtonDisabled
                       ? null
                       : () => _processAnswer(true),
-                  icon: Icon(Icons.check_circle, size: 60),
+                  icon: const Icon(Icons.check_circle, size: 60),
                 ),
               ],
             ),

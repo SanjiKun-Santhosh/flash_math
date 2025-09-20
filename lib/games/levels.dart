@@ -69,7 +69,7 @@ class _LevelsState extends State<Levels> {
       case "Complex":
         return GameGenerator(levelType: level, queryGame: GameTypes.complex.name,);
       case "Flash":
-        return Flash(levelType: level);
+        return GameGenerator(levelType: level, queryGame: GameTypes.flash.name,);
       default:
         return const Scaffold(
           body: Center(child: Text("Error: Unknown Game Type")),
