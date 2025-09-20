@@ -283,7 +283,7 @@ class _FlashState extends State<Flash> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 30),
-            Text("Question ${_record + 1}", style: TextStyle(fontSize: 30)),
+            Text("Question ${_record + 1}", style: TextStyle(fontSize: 30,fontFamily:CustomFontStyle().primaryFont)),
             SizedBox(height: 30),
             Card(
               child: SizedBox(

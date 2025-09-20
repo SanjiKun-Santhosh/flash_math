@@ -11,6 +11,7 @@ import '../models/user_record.dart';
 import '../services/hive_Service.dart';
 import 'addition.dart';
 import 'custom_level.dart';
+import 'game_generator.dart';
 
 class Levels extends StatefulWidget {
   const Levels({super.key, required this.gameType});
@@ -60,11 +61,13 @@ class _LevelsState extends State<Levels> {
   Widget _selectGameWidget(String level) {
     switch (widget.gameType) {
       case "Addition":
-        return Addition(levelType: level);
+        return GameGenerator(levelType: level, queryGame: GameTypes.addition.name,);
       case "Subtraction":
-        return Subtraction(levelType: level);
+        return GameGenerator(levelType: level, queryGame: GameTypes.subtraction.name,);
+      case "Multiply":
+        return GameGenerator(levelType: level, queryGame: GameTypes.multiply.name,);
       case "Complex":
-        return Complex(levelType: level);
+        return GameGenerator(levelType: level, queryGame: GameTypes.complex.name,);
       case "Flash":
         return Flash(levelType: level);
       default:

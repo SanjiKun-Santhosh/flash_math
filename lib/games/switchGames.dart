@@ -35,6 +35,8 @@ class _SwitchGamesState extends State<SwitchGames> {
           return Levels(gameType: widget.gameChosen);
         case "Subtraction":
           return Levels(gameType: widget.gameChosen);
+        case "Multiply":
+          return Levels(gameType: widget.gameChosen);
         case "Complex":
           return Levels(gameType: widget.gameChosen);
         case "Flash":

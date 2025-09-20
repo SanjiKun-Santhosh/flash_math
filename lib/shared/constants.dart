@@ -9,7 +9,8 @@ class ImageGallery {
   static const profilePicture = "assets/images/default_profile_picture.jpg";
 }
 
-enum GameTypes { addition, subtraction, complex, flash }
+enum GameTypes { addition, subtraction, multiply,complex, flash }
+
 
 class GameOutputTexts {
   static const personalBest = "Your personal best is ";
@@ -91,6 +92,7 @@ GameRecord gameTypesInitialisation(String gameMode){
 final Map<String,GameRecord> gameRecordInitialization={
   "addition": gameTypesInitialisation("addition"),
   "subtraction": gameTypesInitialisation("subtraction"),
+  "multiply": gameTypesInitialisation("multiply"),
   "complex": gameTypesInitialisation("complex"),
   "flash": gameTypesInitialisation("flash"),
 };
@@ -118,4 +120,6 @@ class ErrorHandling{
     );
   }
 }
+
+
 

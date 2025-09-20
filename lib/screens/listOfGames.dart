@@ -7,7 +7,7 @@ class ListOfGames extends StatelessWidget {
 
   const ListOfGames({super.key, required this.fontSize});
 
-  List<String> get _gamesList => ["Addition", "Subtraction", "Complex","Flash"];
+  List<String> get _gamesList => ["Addition", "Subtraction", "Multiply","Complex","Flash"];
 
   @override
   Widget build(BuildContext context) {

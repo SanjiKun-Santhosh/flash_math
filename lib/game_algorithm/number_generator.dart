@@ -57,4 +57,13 @@ class NumberGenerator {
     int randomIndex = randomGen.nextInt(listNumbers.length);
     total = listNumbers[randomIndex];
   }
+  Future<void> randomMultiplyTotal() async {
+    int rand =
+        await numberGenerator(min: randomMin, max: randomMax) *
+            await numberGenerator(min: randomMin, max: randomMax);
+    int notRand = firstValue * secondValue;
+    List<int> listNumbers = [rand, notRand];
+    int randomIndex = randomGen.nextInt(listNumbers.length);
+    total = listNumbers[randomIndex];
+  }
 }

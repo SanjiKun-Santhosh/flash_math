@@ -1,35 +1,37 @@
 import 'dart:async';
-
+import 'dart:math';
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:flash_math/models/user_record.dart';
+import 'package:flash_math/game_algorithm/number_generator.dart';
+import 'package:flash_math/models/game_record.dart';
+import 'package:flash_math/services/database.dart';
+import 'package:flash_math/shared/constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../game_algorithm/number_generator.dart';
-import '../models/game_record.dart';
-import '../services/database.dart';
-import '../shared/constants.dart';
+import '../models/user_record.dart';
 import '../screens/custom_sheets.dart';
 
-class Subtraction extends StatefulWidget {
+class GameGenerator extends StatefulWidget {
+  final String queryGame;
   final String levelType;
   final int min;
   final int max;
   final int timerSetting;
 
-  const Subtraction({
+  const GameGenerator({
     super.key,
     this.levelType = practiceLevel,
     this.timerSetting = defaultTimerSetting,
     this.min = minimumForRandomGen,
     this.max = maximumForRandomGen,
+    required this.queryGame,
   });
 
   @override
-  State<Subtraction> createState() => _SubtractionState();
+  State<GameGenerator> createState() => _GameGeneratorState();
 }
 
-class _SubtractionState extends State<Subtraction> {
+class _GameGeneratorState extends State<GameGenerator> {
   late int _timerSpeed;
   late int _levelIndex;
   int _levelUpAt = 0;
@@ -43,23 +45,43 @@ class _SubtractionState extends State<Subtraction> {
   double _progressValue = 0.0;
   Timer? _timer;
   bool _isButtonDisabled = false;
-  final String _gameType = GameTypes.subtraction.name;
+  String _gameType = "";
+  late final String _gameTypeForDBProcessing;
   int currentRecord = 0;
   int globalRecord = 0;
   CustomSheets alertDialog = CustomSheets();
   late final DatabaseService _service;
   late final GameRecord _selectedGameRecord;
   late final UserRecord _streamUserRecord;
-  bool _isInitialized = false;
+  final Random _rand = Random();
   bool _isHighScore = false;
+  bool _isInitialized = false;
   bool _isLevelledUp = false;
+  late Widget _operatorWidget;
+  final List<String>_listOfGameTypes = ["addition", "subtraction", "multiply"];
 
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupGame();
     });
+  }
+
+  Widget _getOperatorIcon(String gametype) {
+    switch (gametype) {
+      case "addition":
+        return Icon(Icons.add);
+      case "subtraction":
+        return Icon(Icons.remove);
+      case "multiply":
+        return Icon(Icons.close_sharp);
+      case "complex":
+        return Icon(Icons.add);
+      default:
+        return SizedBox.shrink(); // Return an empty widget by default
+    }
   }
 
   Future<void> _setupGame() async {
@@ -70,6 +92,8 @@ class _SubtractionState extends State<Subtraction> {
     }
 
     setState(() {
+      _gameType = _gameTypeForDBProcessing = widget.queryGame;
+      _operatorWidget = _getOperatorIcon(_gameType);
       _service = DatabaseService(uid: userRecord.uid);
       if (widget.levelType == practiceLevel) {
         _timerSpeed = widget.timerSetting;
@@ -91,14 +115,30 @@ class _SubtractionState extends State<Subtraction> {
       _max = widget.max;
       _isInitialized = true;
     });
-    await _getRandom();
+    await _getRandom(_gameType);
     startProgress();
   }
 
-  Future<void> _getRandom() async {
+  Future<void> _getRandom(String gametype) async {
     final generator = NumberGenerator(randomMin: _min, randomMax: _max);
-    await generator.randomForSub();
-    await generator.randomSubTotal();
+    switch (gametype) {
+      case "addition":
+        await generator.random();
+        await generator.randomAddTotal();
+        break;
+      case "subtraction":
+        await generator.randomForSub();
+        await generator.randomSubTotal();
+        break;
+      case "multiply":
+        await generator.random();
+        await generator.randomMultiplyTotal();
+        break;
+      default:
+        await generator.random();
+        await generator.randomAddTotal();
+        break;
+    }
     if (mounted) {
       setState(() {
         _firstValue = generator.firstValue;
@@ -136,12 +176,6 @@ class _SubtractionState extends State<Subtraction> {
     });
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
   void _levelUp(int levelIndex) {
     setState(() {
       if (widget.levelType != practiceLevel) {
@@ -154,18 +188,7 @@ class _SubtractionState extends State<Subtraction> {
       }
     });
   }
-  void _processAnswer(bool userGuess) {
-    if (_progressValue >= 1.0) {
-      _handleTimeOver();
-      return;
-    }
-    bool isActuallyCorrect = (_firstValue - _secondValue == _total);
-    if (userGuess == isActuallyCorrect) {
-      _handleCorrectAnswer();
-    } else {
-      _handleWrongAnswer();
-    }
-  }
+
   void _handleTimeOver() {
     if (mounted) {
       setState(() {
@@ -187,7 +210,41 @@ class _SubtractionState extends State<Subtraction> {
     }
   }
 
-  Future<void> _handleCorrectAnswer() async {
+  bool _checkBasedOnGametype(int firstValue, int secondValue, int total) {
+    switch (_gameType) {
+      case "addition":
+        return _firstValue + _secondValue == _total;
+      case "subtraction":
+        return _firstValue - _secondValue == _total;
+      case "multiply":
+        return _firstValue * _secondValue == _total;
+      default:
+        return _firstValue + _secondValue == _total;
+    }
+  }
+
+  void _processAnswer(bool userGuess) {
+    if (_progressValue >= 1.0) {
+      _handleTimeOver();
+      return;
+    }
+    bool isActuallyCorrect = _checkBasedOnGametype(
+      _firstValue,
+      _secondValue,
+      _total,
+    );
+    if (userGuess == isActuallyCorrect) {
+      if (_gameTypeForDBProcessing == GameTypes.complex.name) {
+        int randomIndex = _rand.nextInt(_listOfGameTypes.length);
+        _gameType = _listOfGameTypes[randomIndex].toLowerCase();
+      }
+      _handleCorrectAnswer(_gameType);
+    } else {
+      _handleWrongAnswer();
+    }
+  }
+
+  Future<void> _handleCorrectAnswer(String gameType) async {
     if (!mounted) {
       return;
     }
@@ -200,7 +257,7 @@ class _SubtractionState extends State<Subtraction> {
         widget.levelType != practiceLevel) {
       setState(() {
         _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
-        true;
+            true;
         _levelUp(_levelIndex);
       });
       stopProgress();
@@ -213,9 +270,10 @@ class _SubtractionState extends State<Subtraction> {
         return;
       }
     }
+    if (!mounted) return;
     setState(() {
-      _getRandom();
-
+      _getRandom(gameType);
+      _operatorWidget = _getOperatorIcon(gameType);
       resetProgress();
     });
   }
@@ -243,12 +301,20 @@ class _SubtractionState extends State<Subtraction> {
     }
   }
 
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   void updateRecordDatabase(int currentRecord) async {
     if (widget.levelType != practiceLevel) {
       _selectedGameRecord.record = currentRecord.toString();
       Map<String, GameRecord>? data = _streamUserRecord.gameRecord;
-      data?.update(_gameType, (update) => _selectedGameRecord);
-      await _service.updateUserRecord(data!);
+      data?.update(_gameTypeForDBProcessing, (update) => _selectedGameRecord);
+      if (data != null) {
+        await _service.updateUserRecord(data);
+      }
     }
   }
 
@@ -266,7 +332,7 @@ class _SubtractionState extends State<Subtraction> {
           },
         ),
       ),
-      backgroundColor: Colors.greenAccent[100],
+      backgroundColor: Colors.blue[100],
       body: Container(
         padding: EdgeInsets.fromLTRB(30, 30, 30, 30),
         color: Colors.transparent,
@@ -274,7 +340,13 @@ class _SubtractionState extends State<Subtraction> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 30),
-            Text("Question ${_record+1}", style: TextStyle(fontSize: 30,fontFamily:CustomFontStyle().primaryFont)),
+            Text(
+              "Question ${_record + 1}",
+              style: TextStyle(
+                fontSize: 30,
+                fontFamily: CustomFontStyle().primaryFont,
+              ),
+            ),
             SizedBox(height: 30),
             Card(
               child: SizedBox(
@@ -292,7 +364,7 @@ class _SubtractionState extends State<Subtraction> {
                               _firstValue.toString(),
                               style: TextStyle(fontSize: 40),
                             ),
-                            Icon(Icons.remove),
+                            _operatorWidget,
                             Text(
                               _secondValue.toString(),
                               style: TextStyle(fontSize: 40),
