@@ -48,9 +48,9 @@ class _GameGeneratorState extends State<GameGenerator> {
   bool _isButtonDisabled = false;
   String _gameType = "";
   late final String _gameTypeForDBProcessing;
-  int currentRecord = 0;
-  int globalRecord = 0;
-  CustomSheets alertDialog = CustomSheets();
+  int _currentRecord = 0;
+  int _globalRecord = 0;
+  CustomSheets _alertDialog = CustomSheets();
   late final DatabaseService _service;
   late final GameRecord _selectedGameRecord;
   late final UserRecord _streamUserRecord;
@@ -110,7 +110,7 @@ class _GameGeneratorState extends State<GameGenerator> {
             gameTypesInitialisation(_gameType);
       }
       _streamUserRecord = userRecord;
-      currentRecord = globalRecord = int.parse(
+      _currentRecord = _globalRecord = int.parse(
         _selectedGameRecord.record ?? "0",
       );
       _levelUpAt = defaultLevelUpAt;
@@ -119,7 +119,7 @@ class _GameGeneratorState extends State<GameGenerator> {
       _isInitialized = true;
     });
     await _getRandom(_gameType);
-    startProgress();
+    _startProgress();
   }
 
   Future<void> _getRandom(String gametype) async {
@@ -155,7 +155,7 @@ class _GameGeneratorState extends State<GameGenerator> {
     }
   }
 
-  void startProgress() {
+  void _startProgress() {
     final oneHundredthOfASecond = Duration(milliseconds: _timerSpeed);
     _timer = Timer.periodic(oneHundredthOfASecond, (timer) {
       if (_progressValue >= 1.0) {
@@ -171,12 +171,12 @@ class _GameGeneratorState extends State<GameGenerator> {
     });
   }
 
-  void resetProgress() {
-    stopProgress();
-    startProgress();
+  void _resetProgress() {
+    _stopProgress();
+    _startProgress();
   }
 
-  void stopProgress() {
+  void _stopProgress() {
     _timer?.cancel();
     setState(() {
       _progressValue = 0.0;
@@ -200,16 +200,16 @@ class _GameGeneratorState extends State<GameGenerator> {
     if (mounted) {
       setState(() {
         _isButtonDisabled = true;
-        stopProgress();
-        if (_record > currentRecord) {
-          globalRecord = _record;
-          updateRecordDatabase(_record);
+        _stopProgress();
+        if (_record > _currentRecord) {
+          _globalRecord = _record;
+          _updateRecordDatabase(_record);
           _isHighScore = true;
         }
-        alertDialog.showCustomModalBottomSheet(
+        _alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
-          record: globalRecord,
+          record: _globalRecord,
           gameMsg: GameOutputTexts.timeOverMsg,
           playConfetti: _isHighScore,
         );
@@ -267,7 +267,7 @@ class _GameGeneratorState extends State<GameGenerator> {
             true;
         _levelUp(_levelIndex);
       });
-      stopProgress();
+      _stopProgress();
       String? result = await CustomSheets().showLevelUp(
         context,
         _levelIndex.toString(),
@@ -281,7 +281,7 @@ class _GameGeneratorState extends State<GameGenerator> {
     setState(() {
       _getRandom(gameType);
       _operatorWidget = _getOperatorIcon(gameType);
-      resetProgress();
+      _resetProgress();
     });
   }
 
@@ -291,16 +291,16 @@ class _GameGeneratorState extends State<GameGenerator> {
     if (mounted) {
       setState(() {
         _isButtonDisabled = true;
-        stopProgress();
-        if (_record > currentRecord) {
-          globalRecord = _record;
-          updateRecordDatabase(_record);
+        _stopProgress();
+        if (_record > _currentRecord) {
+          _globalRecord = _record;
+          _updateRecordDatabase(_record);
           _isHighScore = true;
         }
-        alertDialog.showCustomModalBottomSheet(
+        _alertDialog.showCustomModalBottomSheet(
           context,
           outputText: GameOutputTexts.personalBest,
-          record: globalRecord,
+          record: _globalRecord,
           gameMsg: gameMessage,
           playConfetti: _isHighScore,
         );
@@ -314,7 +314,7 @@ class _GameGeneratorState extends State<GameGenerator> {
     super.dispose();
   }
 
-  void updateRecordDatabase(int currentRecord) async {
+  void _updateRecordDatabase(int currentRecord) async {
     if (widget.levelType != practiceLevel) {
       _selectedGameRecord.record = currentRecord.toString();
       Map<String, GameRecord>? data = _streamUserRecord.gameRecord;
@@ -445,7 +445,7 @@ class _GameGeneratorState extends State<GameGenerator> {
               ),
             ),
             SizedBox(height: 20),
-            currentRecord >= _record
+            _currentRecord >= _record
                 ? Column(
                     children: [
                       Text(
@@ -458,7 +458,7 @@ class _GameGeneratorState extends State<GameGenerator> {
                       ),
                       SizedBox(height: 20),
                       Text(
-                        "$currentRecord",
+                        "$_currentRecord",
                         style: TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.bold,

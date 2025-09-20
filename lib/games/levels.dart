@@ -1,6 +1,3 @@
-import 'package:flash_math/games/complex.dart';
-import 'package:flash_math/games/flash.dart';
-import 'package:flash_math/games/subtraction.dart';
 import 'package:flash_math/models/game_record.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
@@ -9,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../models/user_record.dart';
 import '../services/hive_Service.dart';
-import 'addition.dart';
 import 'custom_level.dart';
 import 'game_generator.dart';
 
@@ -118,7 +114,7 @@ class _LevelsState extends State<Levels> {
     return Template(
       child: Scaffold(
         appBar: AppBar(
-          toolbarHeight: 60,
+          toolbarHeight: 70,
           automaticallyImplyLeading: false,
           elevation: 0.0,
           centerTitle: true,
@@ -126,14 +122,19 @@ class _LevelsState extends State<Levels> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              CircleAvatar(
-                radius: 30,
-                backgroundImage: hiveService.profileImage != null
-                    ? FileImage(hiveService.profileImage!)
-                    : null,
-                child: hiveService.profileImage == null
-                    ? Icon(Icons.person)
-                    : null,
+              InkWell(
+                onTap: () {
+                  Navigator.pushNamed(context, "/userProfile");
+                },
+                child: CircleAvatar(
+                  radius: 35,
+                  backgroundImage: hiveService.profileImage != null
+                      ? FileImage(hiveService.profileImage!)
+                      : null,
+                  child: hiveService.profileImage == null
+                      ? Icon(Icons.person)
+                      : null,
+                ),
               ),
             ],
           ),

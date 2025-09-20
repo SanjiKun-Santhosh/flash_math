@@ -1,9 +1,7 @@
-import 'package:flash_math/games/subtraction.dart';
+import 'package:flash_math/games/game_generator.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
-import 'addition.dart';
-import 'complex.dart';
 
 class CustomLevel extends StatefulWidget {
   final String gameType;
@@ -24,25 +22,35 @@ class _CustomLevelState extends State<CustomLevel> {
   Widget _selectGameWidget() {
     switch (widget.gameType) {
       case "Addition":
-        return Addition(
+        return GameGenerator(
           levelType: practiceLevel,
           min: _min,
           max: _max,
           timerSetting: _timer,
+          queryGame: GameTypes.addition.name,
         );
       case "Substraction":
-        return Subtraction(
+        return GameGenerator(
           levelType: practiceLevel,
           min: _min,
           max: _max,
-          timerSetting: _timer,
+          timerSetting: _timer, queryGame: GameTypes.subtraction.name,
         );
       case "Complex":
-        return Complex(
+        return GameGenerator(
           levelType: practiceLevel,
           min: _min,
           max: _max,
           timerSetting: _timer,
+          queryGame: GameTypes.complex.name,
+        );
+      case "Flash":
+        return GameGenerator(
+          levelType: practiceLevel,
+          min: _min,
+          max: _max,
+          timerSetting: _timer,
+          queryGame: GameTypes.flash.name,
         );
       default:
         return const Scaffold(
