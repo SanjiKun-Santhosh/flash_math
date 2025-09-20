@@ -263,20 +263,24 @@ class _GameGeneratorState extends State<GameGenerator> {
         _levelIndex <= 5 &&
         widget.levelType != practiceLevel) {
       setState(() {
-        final Map<String, bool> updatedGameData = Map.of(_selectedGameRecord.gameData);
-        updatedGameData[levelListKeys.elementAt(_levelIndex)] =
-            true;
-        _selectedGameRecord.gameData=updatedGameData;
+        final Map<String, bool> updatedGameData = Map.of(
+          _selectedGameRecord.gameData,
+        );
+        updatedGameData[levelListKeys.elementAt(_levelIndex)] = true;
+        _selectedGameRecord.gameData = updatedGameData;
         _levelUp(_levelIndex);
       });
       _stopProgress();
-      String? result = await CustomSheets().showLevelUp(
-        context,
-        _levelIndex.toString(),
-      );
-      if (result == "exit") {
-        _handleWrongAnswer(gameMessage: GameOutputTexts.onFire);
-        return;
+      if (_levelIndex <= 5) {
+        String? result = await CustomSheets().showLevelUp(
+          context,
+          _levelIndex.toString(),
+        );
+
+        if (result == "exit") {
+          _handleWrongAnswer(gameMessage: GameOutputTexts.onFire);
+          return;
+        }
       }
     }
     if (!mounted) return;

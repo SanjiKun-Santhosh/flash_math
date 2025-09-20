@@ -54,7 +54,7 @@ class _RegisterState extends State<Register> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SizedBox(height: 50),
+                     const SizedBox(height: 50),
                       Text(
                         textAlign: TextAlign.center,
                         "Welcome New User!",
@@ -64,7 +64,7 @@ class _RegisterState extends State<Register> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 50),
+                      const SizedBox(height: 50),
                       TextFormField(
                         initialValue: "Email",
                         onChanged: (val) {
@@ -88,7 +88,7 @@ class _RegisterState extends State<Register> {
                         decoration: AppDecoration().textDecoration,
                       ),
 
-                      SizedBox(height: 50),
+                      const SizedBox(height: 50),
                       TextFormField(
                         initialValue: "Password",
                         obscureText: true,
@@ -111,7 +111,7 @@ class _RegisterState extends State<Register> {
                         },
                         decoration: AppDecoration().textDecoration,
                       ),
-                      SizedBox(height: 50),
+                      const SizedBox(height: 50),
                       ElevatedButton.icon(
                         onPressed: () async {
                           if (formKey.currentState!.validate()) {
@@ -151,7 +151,7 @@ class _RegisterState extends State<Register> {
                           size: 20,
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -171,7 +171,7 @@ class _RegisterState extends State<Register> {
                             child: Text(
                               "Login",
                               style: TextStyle(
-                                color: Colors.deepOrangeAccent,
+                                color: Colors.yellow,
                                 fontSize: 20,
                                 fontFamily: CustomFontStyle().primaryFont,
                                 fontWeight: FontWeight.bold,
@@ -180,21 +180,21 @@ class _RegisterState extends State<Register> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: <Widget>[
-                          IconButton(
-                            onPressed: () {},
-                            icon: FaIcon(FontAwesomeIcons.facebook),
-                            iconSize: 40,
-                          ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: FaIcon(FontAwesomeIcons.instagram),
-                            iconSize: 40,
-                          ),
+                          // IconButton(
+                          //   onPressed: () {},
+                          //   icon: FaIcon(FontAwesomeIcons.facebook),
+                          //   iconSize: 40,
+                          // ),
+                          // IconButton(
+                          //   onPressed: () {},
+                          //   icon: FaIcon(FontAwesomeIcons.instagram),
+                          //   iconSize: 40,
+                          // ),
                           IconButton(
                             onPressed: () async {
                               setState(() {

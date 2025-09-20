@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flash_math/screens/custom_sheets.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/services/auth.dart';
@@ -14,7 +15,9 @@ class Login extends StatefulWidget {
   State<Login> createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _animation;
   final Auth _auth = Auth();
   final formKey = GlobalKey<FormState>();
   String _currentEmail = "";
@@ -27,7 +30,22 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     _auth.attemptSilentSignIn();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(
+      begin: 0.2,
+      end: 1.0,
+    ).animate(_animationController);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -38,20 +56,35 @@ class _LoginState extends State<Login> {
             backgroundColor: Colors.transparent,
             appBar: AppBar(
               actionsPadding: EdgeInsets.all(10),
-              title: Text(
-                "Flash Math",
-                softWrap: true,
-                style: TextStyle(
-                  fontFamily: CustomFontStyle().primaryFont,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 30,
-                ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FadeTransition(
+                    opacity: _animation,
+                    child: Icon(
+                      Icons.flash_on_outlined,
+                      color: Colors.amber,
+                      size: 40,
+                      weight: 20,
+                    ),
+                  ),
+                  AnimatedTextKit(
+                    animatedTexts: [
+                      TyperAnimatedText(
+                        "Flash Math",
+                        curve: Curves.bounceInOut,
+                        textStyle: TextStyle(
+                          fontFamily: CustomFontStyle().primaryFont,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 40,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               centerTitle: true,
               backgroundColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
             ),
             body: SingleChildScrollView(
               child: Container(
@@ -71,7 +104,7 @@ class _LoginState extends State<Login> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 50),
+                      const SizedBox(height: 50),
                       TextFormField(
                         onChanged: (val) {
                           setState(() {
@@ -95,7 +128,7 @@ class _LoginState extends State<Login> {
                           hintText: "Email",
                         ),
                       ),
-                      SizedBox(height: 50),
+                      const SizedBox(height: 50),
                       TextFormField(
                         obscureText: true,
                         obscuringCharacter: "*",
@@ -119,7 +152,7 @@ class _LoginState extends State<Login> {
                           hintText: "Password",
                         ),
                       ),
-                      SizedBox(height: 50),
+                      const SizedBox(height: 50),
                       ElevatedButton.icon(
                         onPressed: () async {
                           if (formKey.currentState!.validate()) {
@@ -150,6 +183,7 @@ class _LoginState extends State<Login> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 20,
+                            fontWeight: FontWeight.bold,
                             fontFamily: CustomFontStyle().primaryFont,
                           ),
                         ),
@@ -159,7 +193,7 @@ class _LoginState extends State<Login> {
                           size: 20,
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       TextButton(
                         onPressed: () {
                           setState(() {
@@ -177,9 +211,9 @@ class _LoginState extends State<Login> {
                             }
                           });
                         },
-                        child: Text("Try the game as GUEST"),
+                        child: const Text("Try the game as GUEST"),
                       ),
-                      SizedBox(height: 10),
+                     const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -199,7 +233,7 @@ class _LoginState extends State<Login> {
                             child: Text(
                               "Register",
                               style: TextStyle(
-                                color: Colors.deepOrangeAccent,
+                                color: Colors.yellow,
                                 fontSize: 20,
                                 fontFamily: CustomFontStyle().primaryFont,
                                 fontWeight: FontWeight.bold,
@@ -208,25 +242,25 @@ class _LoginState extends State<Login> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 30),
+                    const  SizedBox(height: 30),
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: <Widget>[
-                          IconButton(
-                            onPressed: () {
-                              // TODO: Implement Facebook login
-                            },
-                            icon: FaIcon(FontAwesomeIcons.facebook),
-                            iconSize: 40,
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              // TODO: Implement Instagram login
-                            },
-                            icon: FaIcon(FontAwesomeIcons.instagram),
-                            iconSize: 40,
-                          ),
+                          // IconButton(
+                          //   onPressed: () {
+                          //     // TODO: Implement Facebook login
+                          //   },
+                          //   icon: FaIcon(FontAwesomeIcons.facebook),
+                          //   iconSize: 40,
+                          // ),
+                          // IconButton(
+                          //   onPressed: () {
+                          //     // TODO: Implement Instagram login
+                          //   },
+                          //   icon: FaIcon(FontAwesomeIcons.instagram),
+                          //   iconSize: 40,
+                          // ),
                           IconButton(
                             onPressed: () async {
                               setState(() {
@@ -249,7 +283,7 @@ class _LoginState extends State<Login> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 20),
+                     const SizedBox(height: 20),
                     ],
                   ),
                 ),
