@@ -1,8 +1,6 @@
 import 'package:flash_math/models/game_record.dart';
 import 'package:flutter/material.dart';
 
-import '../screens/home.dart';
-
 class ImageGallery {
   static const primaryBG = "assets/images/primary_bg.jpeg";
   static const secondaryBG = "assets/images/secondary_bg.png";
@@ -67,7 +65,7 @@ const Map<String, String> levelList = {
 final List levelListKeys = levelList.keys.toList();
 const String practiceLevel = "Practice";
 const int defaultTimerSetting = 30;
-const int defaultLevelUpAt = 20;
+const int defaultLevelUpAt = 5;
 const int maximumLevelUpAt = 10000;
 const int minimumForRandomGen = 0;
 const int maximumForRandomGen = 100;

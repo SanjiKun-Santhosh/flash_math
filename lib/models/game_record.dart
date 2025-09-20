@@ -15,11 +15,15 @@ class GameRecord{
   }
 
   factory GameRecord.fromJson(Map<String,dynamic> json){
+    final Map<String,bool>mutableGameData={};
+    if(json["gameData"] is Map){
+      mutableGameData.addAll(Map<String,bool>.from(json["gameData"]));
+    }
     return GameRecord(
       gameType: json["gameType"] ?? "",
       ranking: json["ranking"] ?? 0,
       record: json["record"] ?? "0",
-      gameData: Map<String, bool>.from(json["gameData"] ?? {}),
+      gameData: mutableGameData
     );
 
   }

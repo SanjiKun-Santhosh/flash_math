@@ -5,7 +5,6 @@ import 'package:flash_math/game_algorithm/number_generator.dart';
 import 'package:flash_math/models/game_record.dart';
 import 'package:flash_math/services/database.dart';
 import 'package:flash_math/shared/constants.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user_record.dart';
@@ -50,9 +49,9 @@ class _GameGeneratorState extends State<GameGenerator> {
   late final String _gameTypeForDBProcessing;
   int _currentRecord = 0;
   int _globalRecord = 0;
-  CustomSheets _alertDialog = CustomSheets();
+  final CustomSheets _alertDialog = CustomSheets();
   late final DatabaseService _service;
-  late final GameRecord _selectedGameRecord;
+  late GameRecord _selectedGameRecord;
   late final UserRecord _streamUserRecord;
   final Random _rand = Random();
   bool _isHighScore = false;
@@ -241,7 +240,8 @@ class _GameGeneratorState extends State<GameGenerator> {
       _total,
     );
     if (userGuess == isActuallyCorrect) {
-      if (_gameTypeForDBProcessing == GameTypes.complex.name || _gameTypeForDBProcessing == GameTypes.flash.name) {
+      if (_gameTypeForDBProcessing == GameTypes.complex.name ||
+          _gameTypeForDBProcessing == GameTypes.flash.name) {
         int randomIndex = _rand.nextInt(_listOfGameTypes.length);
         _gameType = _listOfGameTypes[randomIndex].toLowerCase();
       }
@@ -263,8 +263,10 @@ class _GameGeneratorState extends State<GameGenerator> {
         _levelIndex <= 5 &&
         widget.levelType != practiceLevel) {
       setState(() {
-        _selectedGameRecord.gameData[levelListKeys.elementAt(_levelIndex)] =
+        final Map<String, bool> updatedGameData = Map.of(_selectedGameRecord.gameData);
+        updatedGameData[levelListKeys.elementAt(_levelIndex)] =
             true;
+        _selectedGameRecord.gameData=updatedGameData;
         _levelUp(_levelIndex);
       });
       _stopProgress();
@@ -318,9 +320,13 @@ class _GameGeneratorState extends State<GameGenerator> {
     if (widget.levelType != practiceLevel) {
       _selectedGameRecord.record = currentRecord.toString();
       Map<String, GameRecord>? data = _streamUserRecord.gameRecord;
-      data?.update(_gameTypeForDBProcessing, (update) => _selectedGameRecord);
-      if (data != null) {
-        await _service.updateUserRecord(data);
+      try {
+        data?.update(_gameTypeForDBProcessing, (update) => _selectedGameRecord);
+        if (data != null) {
+          await _service.updateUserRecord(data);
+        }
+      } catch (e) {
+        return null;
       }
     }
   }
@@ -399,43 +405,44 @@ class _GameGeneratorState extends State<GameGenerator> {
                 ),
               ),
             ),
-            SizedBox(height: 30),_isButtonChanged
+            SizedBox(height: 30),
+            _isButtonChanged
                 ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: _isButtonDisabled
-                      ? null
-                      : () => _processAnswer(true),
-                  icon: const Icon(Icons.check_circle, size: 60),
-                ),
-                const SizedBox(width: 60),
-                IconButton(
-                  onPressed: _isButtonDisabled
-                      ? null
-                      : () => _processAnswer(false),
-                  icon: const Icon(Icons.close, size: 60),
-                ),
-              ],
-            )
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _isButtonDisabled
+                            ? null
+                            : () => _processAnswer(true),
+                        icon: const Icon(Icons.check_circle, size: 60),
+                      ),
+                      const SizedBox(width: 60),
+                      IconButton(
+                        onPressed: _isButtonDisabled
+                            ? null
+                            : () => _processAnswer(false),
+                        icon: const Icon(Icons.close, size: 60),
+                      ),
+                    ],
+                  )
                 : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: _isButtonDisabled
-                      ? null
-                      : () => _processAnswer(false),
-                  icon: const Icon(Icons.close, size: 60),
-                ),
-                const SizedBox(width: 60),
-                IconButton(
-                  onPressed: _isButtonDisabled
-                      ? null
-                      : () => _processAnswer(true),
-                  icon: const Icon(Icons.check_circle, size: 60),
-                ),
-              ],
-            ),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _isButtonDisabled
+                            ? null
+                            : () => _processAnswer(false),
+                        icon: const Icon(Icons.close, size: 60),
+                      ),
+                      const SizedBox(width: 60),
+                      IconButton(
+                        onPressed: _isButtonDisabled
+                            ? null
+                            : () => _processAnswer(true),
+                        icon: const Icon(Icons.check_circle, size: 60),
+                      ),
+                    ],
+                  ),
             Text(
               "Game on!",
               style: TextStyle(
