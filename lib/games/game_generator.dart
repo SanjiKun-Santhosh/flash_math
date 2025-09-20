@@ -80,6 +80,8 @@ class _GameGeneratorState extends State<GameGenerator> {
         return Icon(Icons.close_sharp);
       case "complex":
         return Icon(Icons.add);
+      case "flash":
+        return Icon(Icons.add);
       default:
         return SizedBox.shrink(); // Return an empty widget by default
     }
