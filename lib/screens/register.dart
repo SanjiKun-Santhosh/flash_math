@@ -17,7 +17,7 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   bool _loading = false;
   final Auth _auth = Auth();
-  final formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   late String _currentEmail;
   late String _currentPassword;
   final RegExp _regex = RegExp(
@@ -49,7 +49,7 @@ class _RegisterState extends State<Register> {
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 30, horizontal: 30),
                 child: Form(
-                  key: formKey,
+                  key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -113,7 +113,7 @@ class _RegisterState extends State<Register> {
                       const SizedBox(height: 50),
                       ElevatedButton.icon(
                         onPressed: () async {
-                          if (formKey.currentState!.validate()) {
+                          if (_formKey.currentState!.validate()) {
                             setState(() {
                               _loading = !_loading;
                             });
