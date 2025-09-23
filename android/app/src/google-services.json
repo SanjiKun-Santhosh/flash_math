@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "97362753510-avc4r0819hpecnbr3jrl80n0o7hpaouk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.visan.flash_math",
+            "certificate_hash": "0adce79d578c8c7cc535f8e787dd2c1b7fe1b544"
+          }
+        },
+        {
           "client_id": "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com",
           "client_type": 3
         }
