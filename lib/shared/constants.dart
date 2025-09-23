@@ -107,7 +107,7 @@ PageRouteBuilder navigateToDetailScreen(BuildContext context, Widget widget) {
           child: child,
         );
       },
-      transitionDuration: Duration(milliseconds: 500),
+      transitionDuration: const Duration(milliseconds: 500),
   );
 }}
 

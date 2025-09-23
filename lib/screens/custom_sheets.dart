@@ -125,37 +125,46 @@ class CustomSheets {
       context: context,
       builder: (BuildContext dialogContext) {
         return Stack(
-
           children: [
             Container(
-
               padding: EdgeInsets.all(5),
               child: AlertDialog(
-                title: Center(child: Text("Level Up!",style: TextStyle(fontSize: 28),)),
-                content: Text(textAlign: TextAlign.center,
+                title: Center(
+                  child: Text("Level Up!", style: TextStyle(fontSize: 28)),
+                ),
+                content: Text(
+                  textAlign: TextAlign.center,
                   "Congratulations! You are at level $levelName.",
-                    style: TextStyle(fontSize: 23)
+                  style: TextStyle(fontSize: 23),
                 ),
                 actionsAlignment: MainAxisAlignment.spaceEvenly,
                 elevation: 3.0,
                 actions: <Widget>[
                   TextButton(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red,
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    child: Text(
+                      "Exit",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    child: Text("Exit",style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold)),
                     onPressed: () {
                       Navigator.of(dialogContext).pop("exit");
                     },
                   ),
                   TextButton(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.blue,
-                    ),
+                    style: TextButton.styleFrom(foregroundColor: Colors.blue),
                     onPressed: () {
                       Navigator.of(dialogContext).pop("continue");
                     },
-                    child: Text("Continue",style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold)),
+                    child: Text(
+                      "Continue",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),

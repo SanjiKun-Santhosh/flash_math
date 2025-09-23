@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/game_record.dart';
 import '../../models/user.dart';
-import '../../services/hive_Service.dart';
+import '../../services/hive_service.dart';
 
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
@@ -33,7 +33,7 @@ class _UserProfileState extends State<UserProfile> {
   bool _isAnonymous = false;
   final RecordBottomSheet recordBottomSheet = RecordBottomSheet();
   final RegExp _passwordRegex = RegExp(
-    r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;\$\~])',
+    r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;$~])',
   );
   final Map<String, GameRecord> _updatedGameRecord =
       Map<String, GameRecord>.from(gameRecordInitialization);

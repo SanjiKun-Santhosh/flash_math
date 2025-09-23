@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../models/user_record.dart';
-import '../services/hive_Service.dart';
+import '../services/hive_service.dart';
 import 'custom_level.dart';
 import 'game_generator.dart';
 

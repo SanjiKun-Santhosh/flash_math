@@ -1,4 +1,4 @@
-import 'package:flash_math/games/switchGames.dart';
+import 'package:flash_math/games/switch_games.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 
@@ -62,7 +62,7 @@ class ListOfGames extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(height: 15,)
+                    const SizedBox(height: 15,)
                   ],
                 ),
               ),

@@ -1,5 +1,5 @@
 import 'package:flash_math/screens/authenticate.dart';
-import 'package:flash_math/screens/listOfGames.dart';
+import 'package:flash_math/screens/list_of_games.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/shared/constants.dart';
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../models/user_record.dart';
-import '../services/hive_Service.dart';
+import '../services/hive_service.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -50,7 +50,7 @@ class _HomeState extends State<Home> {
     final hiveService = context.watch<HiveService>();
     if (mathUser != null) {
       return _loading
-          ? Loading()
+          ? const Loading()
           : Scaffold(
               appBar: AppBar(
                 elevation: 0.0,
@@ -79,7 +79,7 @@ class _HomeState extends State<Home> {
                       icon: Icon(Icons.logout_rounded),
                       label: Text("Logout"),
                     ),
-                    SizedBox(width: 10,)
+                    const SizedBox(width: 10,)
                   ],
                 ),
               ),
@@ -105,12 +105,12 @@ class _HomeState extends State<Home> {
                               : null,
                         ),
                       ),
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
                       Text(
                         "Welcome $_userName",
                         style: TextStyle(fontSize: 30,fontFamily: CustomFontStyle().primaryFont,fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(height: 55),
+                      const SizedBox(height: 55),
                       ListOfGames(fontSize: 30),
                     ],
                   ),
@@ -118,7 +118,7 @@ class _HomeState extends State<Home> {
               ),
             );
     } else {
-      return Authenticate();
+      return const Authenticate();
     }
   }
 }

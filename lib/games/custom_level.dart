@@ -80,7 +80,7 @@ class _CustomLevelState extends State<CustomLevel> {
                     fontFamily: CustomFontStyle().primaryFont,
                   ),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 Slider(
                   value: _timerSlide,
                   thumbColor: Colors.black,
@@ -104,7 +104,7 @@ class _CustomLevelState extends State<CustomLevel> {
                     fontFamily: CustomFontStyle().primaryFont,
                   ),
                 ),
-                SizedBox(height: 60),
+                const SizedBox(height: 60),
                 TextField(
                   textAlign: TextAlign.center,
                   decoration: AppDecoration().textDecoration.copyWith(
@@ -117,7 +117,7 @@ class _CustomLevelState extends State<CustomLevel> {
                     });
                   },
                 ),
-                SizedBox(height: 60),
+                const SizedBox(height: 60),
                 TextField(
                   textAlign: TextAlign.center,
                   decoration: AppDecoration().textDecoration.copyWith(
@@ -130,9 +130,9 @@ class _CustomLevelState extends State<CustomLevel> {
                     });
                   },
                 ),
-                SizedBox(height: 60),
+                const SizedBox(height: 60),
                 (_max < _min)
-                    ? Text(
+                    ? const Text(
                         "Highest number should be greater than lowest number!",
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.black, fontSize: 28),
@@ -151,8 +151,8 @@ class _CustomLevelState extends State<CustomLevel> {
                             ),
                           );
                         },
-                        label: Text(" Play", style: TextStyle(fontSize: 30)),
-                        icon: Icon(Icons.games, size: 20),
+                        label: const Text(" Play", style: TextStyle(fontSize: 30)),
+                        icon: const Icon(Icons.games, size: 20),
                       ),
               ],
             ),

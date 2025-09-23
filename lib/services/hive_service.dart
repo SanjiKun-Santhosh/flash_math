@@ -35,7 +35,6 @@ class HiveService extends ChangeNotifier {
     if (userFromHive != null) {
       userFromHive.profilePicture = path;
       await userFromHive.save();
-      print("Saved");
     } else {
       await _hiveStorage.put(
         userId,

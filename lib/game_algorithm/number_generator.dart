@@ -1,6 +1,5 @@
 import 'dart:math';
 
-
 class NumberGenerator {
   final int randomMin;
   final int randomMax;
@@ -13,7 +12,6 @@ class NumberGenerator {
 
   Future<int> numberGenerator({int min = 0, int max = 100}) async {
     return min + randomGen.nextInt((max + 1) - min);
-    ;
   }
 
   Future<void> random() async {
@@ -57,10 +55,11 @@ class NumberGenerator {
     int randomIndex = randomGen.nextInt(listNumbers.length);
     total = listNumbers[randomIndex];
   }
+
   Future<void> randomMultiplyTotal() async {
     int rand =
         await numberGenerator(min: randomMin, max: randomMax) *
-            await numberGenerator(min: randomMin, max: randomMax);
+        await numberGenerator(min: randomMin, max: randomMax);
     int notRand = firstValue * secondValue;
     List<int> listNumbers = [rand, notRand];
     int randomIndex = randomGen.nextInt(listNumbers.length);

@@ -1,5 +1,4 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:flash_math/screens/custom_sheets.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/shared/constants.dart';
@@ -23,7 +22,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
   String _currentEmail = "";
   String _currentPassword = "";
   final RegExp _regex = RegExp(
-    r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;\$\~])',
+    r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;$~])',
   );
   bool _loading = false;
 
@@ -51,7 +50,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return _loading
-        ? Loading()
+        ? const Loading()
         : Scaffold(
             backgroundColor: Colors.transparent,
             appBar: AppBar(

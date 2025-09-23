@@ -109,9 +109,7 @@ class _GameGeneratorState extends State<GameGenerator> {
             gameTypesInitialisation(_gameType);
       }
       _streamUserRecord = userRecord;
-      _currentRecord = _globalRecord = int.parse(
-        _selectedGameRecord.record ?? "0",
-      );
+      _currentRecord = _globalRecord = int.parse(_selectedGameRecord.record);
       _levelUpAt = defaultLevelUpAt;
       _min = widget.min;
       _max = widget.max;
@@ -356,7 +354,7 @@ class _GameGeneratorState extends State<GameGenerator> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             Text(
               "Question ${_record + 1}",
               style: TextStyle(
@@ -364,7 +362,7 @@ class _GameGeneratorState extends State<GameGenerator> {
                 fontFamily: CustomFontStyle().primaryFont,
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             Card(
               child: SizedBox(
                 height: 175,
@@ -388,14 +386,14 @@ class _GameGeneratorState extends State<GameGenerator> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 13),
+                        const SizedBox(height: 13),
                         SizedBox(
                           child: Text(
                             _total.toString(),
                             style: TextStyle(fontSize: 40),
                           ),
                         ),
-                        SizedBox(height: 15),
+                        const SizedBox(height: 15),
                         LinearProgressIndicator(
                           value: _progressValue,
                           backgroundColor: Colors.grey[300],
@@ -409,7 +407,7 @@ class _GameGeneratorState extends State<GameGenerator> {
                 ),
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             _isButtonChanged
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -447,7 +445,7 @@ class _GameGeneratorState extends State<GameGenerator> {
                       ),
                     ],
                   ),
-            Text(
+            const Text(
               "Game on!",
               style: TextStyle(
                 color: Colors.blueGrey,
@@ -455,7 +453,7 @@ class _GameGeneratorState extends State<GameGenerator> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _currentRecord >= _record
                 ? Column(
                     children: [
@@ -467,7 +465,7 @@ class _GameGeneratorState extends State<GameGenerator> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Text(
                         "$_currentRecord",
                         style: TextStyle(
@@ -488,7 +486,7 @@ class _GameGeneratorState extends State<GameGenerator> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Text(
                         "$_record",
                         style: TextStyle(
@@ -498,7 +496,7 @@ class _GameGeneratorState extends State<GameGenerator> {
                       ),
                     ],
                   ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             _isLevelledUp
                 ? AnimatedTextKit(
                     animatedTexts: [
@@ -510,7 +508,7 @@ class _GameGeneratorState extends State<GameGenerator> {
                         ),
                       ),
                     ],
-                    pause: Duration(seconds: 5),
+                    pause: const Duration(seconds: 5),
                     onFinished: () {
                       setState(() {
                         _isLevelledUp = false;

@@ -16,17 +16,6 @@ class SwitchGames extends StatefulWidget {
 
 class _SwitchGamesState extends State<SwitchGames> {
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userRecord = context.read<UserRecord?>();
-      if (userRecord != null) {
-        print("object ${userRecord.name}");
-      }
-    });
-  }
-  @override
   Widget build(BuildContext context) {
     final userRecord = context.watch<UserRecord?>();
     if (userRecord != null) {

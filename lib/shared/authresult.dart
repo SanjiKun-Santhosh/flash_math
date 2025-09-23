@@ -1,5 +1,3 @@
-import 'package:flash_math/services/auth.dart';
-
 class AuthResult<T> {
   final bool isSuccess;
   final String? errorMsg;

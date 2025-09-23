@@ -3,7 +3,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../services/auth.dart';
 import '../shared/constants.dart';
-import 'custom_sheets.dart';
 import 'loading.dart';
 
 class Register extends StatefulWidget {
@@ -22,13 +21,13 @@ class _RegisterState extends State<Register> {
   late String _currentEmail;
   late String _currentPassword;
   final RegExp _regex = RegExp(
-    r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;\$\~])',
+    r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@!#%^&*.,:"-=+;$~])',
   );
 
   @override
   Widget build(BuildContext context) {
     return _loading
-        ? Loading()
+        ? const Loading()
         : Scaffold(
             backgroundColor: Colors.transparent,
             appBar: AppBar(
@@ -54,7 +53,7 @@ class _RegisterState extends State<Register> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                     const SizedBox(height: 50),
+                      const SizedBox(height: 50),
                       Text(
                         textAlign: TextAlign.center,
                         "Welcome New User!",
