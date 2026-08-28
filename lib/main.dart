@@ -4,6 +4,7 @@ import 'package:flash_math/models/user.dart';
 import 'package:flash_math/models/user_record.dart';
 import 'package:flash_math/screens/home.dart';
 import 'package:flash_math/screens/profile/profile.dart';
+import 'package:flash_math/screens/register.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/screens/wrapper.dart';
 import 'package:flash_math/services/auth.dart';

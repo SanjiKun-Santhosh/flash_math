@@ -65,7 +65,6 @@ class _RegisterState extends State<Register> {
                       ),
                       const SizedBox(height: 50),
                       TextFormField(
-                        initialValue: "Email",
                         onChanged: (val) {
                           setState(() {
                             _currentEmail = val;
@@ -84,12 +83,11 @@ class _RegisterState extends State<Register> {
                             }
                           }
                         },
-                        decoration: AppDecoration().textDecoration,
+                        decoration: AppDecoration().textDecoration.copyWith(hintText: "Email"),
                       ),
 
                       const SizedBox(height: 50),
                       TextFormField(
-                        initialValue: "Password",
                         obscureText: true,
                         obscuringCharacter: "*",
                         onChanged: (val) {
@@ -108,7 +106,7 @@ class _RegisterState extends State<Register> {
                             }
                           }
                         },
-                        decoration: AppDecoration().textDecoration,
+                        decoration: AppDecoration().textDecoration.copyWith(hintText: "Password"),
                       ),
                       const SizedBox(height: 50),
                       ElevatedButton.icon(

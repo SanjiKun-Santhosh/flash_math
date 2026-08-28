@@ -29,12 +29,20 @@ class _CustomLevelState extends State<CustomLevel> {
           timerSetting: _timer,
           queryGame: GameTypes.addition.name,
         );
-      case "Substraction":
+      case "Subtraction":
         return GameGenerator(
           levelType: practiceLevel,
           min: _min,
           max: _max,
           timerSetting: _timer, queryGame: GameTypes.subtraction.name,
+        );
+      case "Multiply":
+        return GameGenerator(
+          levelType: practiceLevel,
+          min: _min,
+          max: _max,
+          timerSetting: _timer,
+          queryGame: GameTypes.multiply.name,
         );
       case "Complex":
         return GameGenerator(

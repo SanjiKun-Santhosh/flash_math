@@ -2,7 +2,9 @@ import 'package:flash_math/models/user_record.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/screens/profile/profile_support.dart';
 import 'package:flash_math/screens/template.dart';
+import 'package:flash_math/screens/wrapper.dart';
 import 'package:flash_math/services/auth.dart';
+import 'package:flash_math/shared/authresult.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -77,6 +79,7 @@ class _UserProfileState extends State<UserProfile> {
   void dispose() {
     _textEmailController.dispose();
     _textNameController.dispose();
+    _textPasswordController.dispose();
     super.dispose();
   }
 
@@ -98,8 +101,8 @@ class _UserProfileState extends State<UserProfile> {
 
     try {
       if (_isAnonymous) {
-        if (_emailChanged && _passwordChanged) {
-          await _auth.updateUserEmailAndPassword(
+        if (_emailChanged || _passwordChanged) {
+          await _auth.linkAnonymousWithCredentials(
             _textEmailController.text,
             _textPasswordController.text,
           );
@@ -114,7 +117,7 @@ class _UserProfileState extends State<UserProfile> {
           await _auth.updatePassword(_textPasswordController.text);
         }
         if (_emailChanged) {
-          _auth.updateEmail(_textEmailController.text);
+          await _auth.updateEmail(_textEmailController.text);
         }
       }
       if (_nameChanged) {
@@ -290,6 +293,110 @@ class _UserProfileState extends State<UserProfile> {
                                     },
                                     icon: const Icon(Icons.save_alt_rounded),
                                     label: const Text("Save Changes"),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        builder: (BuildContext bottomSheetContext) {
+                                          bool isModalLoading = false;
+                                          return StatefulBuilder(
+                                            builder: (BuildContext modalContext, setModalState) {
+                                              return Container(
+                                                height: 400,
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.only(
+                                                    topLeft: Radius.circular(20),
+                                                    topRight: Radius.circular(20),
+                                                  ),
+                                                ),
+                                                padding: const EdgeInsets.all(30),
+                                                child: isModalLoading 
+                                                  ? const Center(child: CircularProgressIndicator())
+                                                  : Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const SizedBox(height: 20),
+                                                    const Text(
+                                                      "Are you sure you want to delete your account?",
+                                                      style: TextStyle(
+                                                        fontSize: 22,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                      textAlign: TextAlign.center,
+                                                    ),
+                                                    const SizedBox(height: 10),
+                                                    const Text(
+                                                      "This action is permanent and cannot be undone.",
+                                                      style: TextStyle(fontSize: 16),
+                                                      textAlign: TextAlign.center,
+                                                    ),
+                                                    const SizedBox(height: 40),
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceEvenly,
+                                                      children: [
+                                                        ElevatedButton(
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: Colors.red,
+                                                            foregroundColor: Colors.white,
+                                                          ),
+                                                          onPressed: () async {
+                                                            setModalState(() => isModalLoading = true);
+                                                            AuthResult<void> result = await _auth.deleteAccount();
+                                                            
+                                                            if (!mounted) return;
+                                                            
+                                                            if (result.isSuccess) {
+                                                              Navigator.of(this.context).pushAndRemoveUntil(
+                                                                MaterialPageRoute(builder: (context) => const Wrapper()),
+                                                                (Route<dynamic> route) => false,
+                                                              );
+                                                            } else {
+                                                              setModalState(() => isModalLoading = false);
+                                                              if (bottomSheetContext.mounted) {
+                                                                Navigator.pop(bottomSheetContext);
+                                                              }
+                                                              if (mounted) {
+                                                                ErrorHandling().showError(
+                                                                  this.context,
+                                                                  result.errorMsg ?? "An unknown error occurred",
+                                                                );
+                                                              }
+                                                            }
+                                                          },
+                                                          child: const Text("Confirm"),
+                                                        ),
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            Navigator.pop(modalContext);
+                                                          },
+                                                          child: const Text("Cancel"),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }
+                                          );
+                                        },
+                                      );
+                                    },
+                                    label: const Text("Delete account"),
+                                    icon: const Icon(Icons.delete_forever_rounded),
+                                    style: ElevatedButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                    ),
                                   ),
                                 ],
                               ),

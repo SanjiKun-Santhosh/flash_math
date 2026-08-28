@@ -34,11 +34,10 @@ class Auth {
         uid: user!.uid,
       ).addUserData("Player", gameRecordInitialization);
       return AuthResult.success(_userFromFireBase(user));
-    }on FirebaseException catch (e){
+    } on FirebaseException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
-    }
-    catch (e) {
-      return AuthResult.failure("Unexpected error occurred: $e");
+    } catch (e) {
+      return AuthResult.failure("Something went wrong. Please try again later.");
     }
   }
 
@@ -66,15 +65,17 @@ class Auth {
       User? user = userCredential?.user;
 
       return AuthResult.success(_userFromFireBase(user));
-    }on FirebaseException catch (e){
+    } on FirebaseException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
-    }
-    catch (e) {
-      return AuthResult.failure("Unexpected error occurred: $e");
+    } catch (e) {
+      return AuthResult.failure("Failed to link account. Please try again.");
     }
   }
 
-  Future<AuthResult<MathUser?>> loginWithEmailAndPassword(String email, String password) async {
+  Future<AuthResult<MathUser?>> loginWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     try {
       UserCredential credential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -82,15 +83,17 @@ class Auth {
       );
       User? user = credential.user;
       return AuthResult.success(_userFromFireBase(user));
-    } on FirebaseException catch (e){
+    } on FirebaseException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
-    }
-    catch (e) {
-      return AuthResult.failure("Unexpected error occurred: $e");
+    } catch (e) {
+      return AuthResult.failure("Login failed. Please check your credentials.");
     }
   }
 
-  Future <AuthResult<MathUser?>> registerWithEmailAndPassword(String email, String password) async {
+  Future<AuthResult<MathUser?>> registerWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     try {
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -100,30 +103,30 @@ class Auth {
       await DatabaseService(
         uid: user!.uid,
       ).addUserData("Player", gameRecordInitialization);
-
       return AuthResult.success(_userFromFireBase(user));
-    } on FirebaseException catch (e){
+    } on FirebaseException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
-    }
-    catch (e) {
-      return AuthResult.failure("Unexpected error occurred: $e");
+    } catch (e) {
+      return AuthResult.failure("Registration failed. Please try again.");
     }
   }
 
-  Future <AuthResult<dynamic>> updateName(String name) async {
+  Future<AuthResult<dynamic>> updateName(String name) async {
     try {
       User? user = _auth.currentUser;
       dynamic result = await DatabaseService(uid: user!.uid).updateName(name);
       return AuthResult.success(result);
-    } on FirebaseException catch (e){
+    } on FirebaseException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
-    }
-    catch (e) {
-      return AuthResult.failure("Unexpected error occurred: $e");
+    } catch (e) {
+      return AuthResult.failure("Could not update name. Please try again.");
     }
   }
 
-  Future <AuthResult<MathUser?>> updateUserEmailAndPassword(String email, String password) async {
+  Future<AuthResult<MathUser?>> updateUserEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     if (await checkAnonymousUser() == false) {
       try {
         User? user = _auth.currentUser;
@@ -135,37 +138,35 @@ class Auth {
           await user!.updatePassword(password);
         }
         return AuthResult.success(_userFromFireBase(user));
-      } on FirebaseException catch (e){
+      } on FirebaseException catch (e) {
         return AuthResult.failure(_mapErrorCodeToMessage(e));
-      }
-      catch (e) {
-        return AuthResult.failure("Unexpected error occurred: $e");
+      } catch (e) {
+        return AuthResult.failure("Update failed. Please try again.");
       }
     } else {
       return linkAnonymousWithCredentials(email, password);
     }
   }
 
-  Future <AuthResult<MathUser?>> updatePassword(String password) async {
+  Future<AuthResult<MathUser?>> updatePassword(String password) async {
     if (await checkAnonymousUser() == false) {
       try {
         User? user = _auth.currentUser;
         if (password.isNotEmpty) {
           await user!.updatePassword(password);
         }
-         return AuthResult.success(_userFromFireBase(user));
-      } on FirebaseException catch (e){
+        return AuthResult.success(_userFromFireBase(user));
+      } on FirebaseException catch (e) {
         return AuthResult.failure(_mapErrorCodeToMessage(e));
+      } catch (e) {
+        return AuthResult.failure("Password update failed. Please try again.");
       }
-      catch (e) {
-        return AuthResult.failure("Unexpected error occurred: $e");
-      }
-    }else{
-      return AuthResult.failure("Something wrong! cannot update password");
+    } else {
+      return AuthResult.failure("Anonymous users cannot update password directly.");
     }
   }
 
-  Future <AuthResult<MathUser?>> updateEmail(String email) async {
+  Future<AuthResult<MathUser?>> updateEmail(String email) async {
     if (await checkAnonymousUser() == false) {
       try {
         User? user = _auth.currentUser;
@@ -174,14 +175,13 @@ class Auth {
           await user!.verifyBeforeUpdateEmail(email);
         }
         return AuthResult.success(_userFromFireBase(user));
-      } on FirebaseException catch (e){
+      } on FirebaseException catch (e) {
         return AuthResult.failure(_mapErrorCodeToMessage(e));
+      } catch (e) {
+        return AuthResult.failure("Email update failed. Please try again.");
       }
-      catch (e) {
-        return AuthResult.failure("Unexpected error occurred: $e");
-      }
-    }else{
-      return AuthResult.failure("Something wrong! cannot update email");
+    } else {
+      return AuthResult.failure("Anonymous users cannot update email directly.");
     }
   }
 
@@ -202,9 +202,30 @@ class Auth {
       }
       await _auth.signOut();
       return AuthResult.success(null);
-    } on Exception catch (e){
-      return AuthResult.failure("Unexpected error occurred: $e");
+    } on Exception {
+      return AuthResult.failure("Logout failed. Please try again.");
+    }
+  }
 
+  Future<AuthResult<void>> deleteAccount() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) {
+        return AuthResult.failure("No user is currently signed in.");
+      }
+      String uid = user.uid;
+      
+      // Perform both Firestore deletion and Auth deletion in parallel
+      await Future.wait([
+        DatabaseService(uid: uid).deleteUser(),
+        user.delete(),
+      ]);
+
+      return AuthResult.success(null);
+    } on FirebaseAuthException catch (e) {
+      return AuthResult.failure(_mapErrorCodeToMessage(e));
+    } catch (e) {
+      return AuthResult.failure("Account deletion failed. Please try again later.");
     }
   }
 
@@ -213,9 +234,8 @@ class Auth {
       await _googleSignIn.initialize(serverClientId: _serverClientId);
       _isGoogleSignInInitialized = true;
       return AuthResult.success(null);
-    }  on Exception catch (e){
-      return AuthResult.failure("Unexpected error occurred: $e");
-
+    } on Exception {
+      return AuthResult.failure("Google Sign-In initialization failed.");
     }
   }
 
@@ -245,9 +265,11 @@ class Auth {
   Future<AuthResult<MathUser?>> signInWithGoogle() async {
     _ensureGoogleSignInInitialized();
     try {
-      final GoogleSignInAccount account = await _googleSignIn.authenticate(
+      final GoogleSignInAccount? account = await _googleSignIn.authenticate(
         scopeHint: ['email'],
       );
+      if (account == null) return AuthResult.failure("Google Sign-In cancelled.");
+
       final UserCredential userCredential = await _googleSignInSupport(account);
       final User? user = userCredential.user;
       final DatabaseService dbService = DatabaseService(uid: user!.uid);
@@ -262,11 +284,10 @@ class Auth {
       }
 
       return AuthResult.success(_userFromFireBase(user));
-    } on GoogleSignInException catch (e) {
-      return AuthResult.failure("Google Sign-In failed: ${e.code.name}");
-    }
-    catch (e) {
-      return AuthResult.failure("Google Sign-In failed ${e.toString()}");
+    } on GoogleSignInException {
+      return AuthResult.failure("Google Sign-In failed. Please try again.");
+    } catch (e) {
+      return AuthResult.failure("An error occurred during Google Sign-In.");
     }
   }
 
@@ -280,29 +301,41 @@ class Auth {
           account,
         );
 
-        return  AuthResult.success(_userFromFireBase(userCredential.user));
+        return AuthResult.success(_userFromFireBase(userCredential.user));
       } else {
-        return AuthResult.failure("Google Sign-In failed");
+        return AuthResult.failure("No existing Google session found.");
       }
-    } on GoogleSignInException catch (e) {
-      return AuthResult.failure(e.code.name);
-    }catch (e) {
-      return AuthResult.failure("Google Sign-In failed ${e.toString()}");
+    } on GoogleSignInException {
+      return AuthResult.failure("Automatic Sign-In failed.");
+    } catch (e) {
+      return AuthResult.failure("Silent Sign-In failed.");
     }
   }
 
   String _mapErrorCodeToMessage(FirebaseException e) {
     switch (e.code) {
       case 'user-not-found':
-        return "No user found for this email";
+        return "No user found for this email.";
       case 'wrong-password':
-        return "Invalid password";
+        return "Incorrect password. Please try again.";
       case 'email-already-in-use':
-        return "This email is already registered";
+        return "This email is already registered.";
       case 'weak-password':
-        return "Please enter a strong password";
+        return "Please enter a stronger password.";
+      case 'invalid-email':
+        return "The email address is not valid.";
+      case 'user-disabled':
+        return "This account has been disabled.";
+      case 'too-many-requests':
+        return "Too many attempts. Please try again later.";
+      case 'operation-not-allowed':
+        return "Sign-in method not enabled. Please contact support.";
+      case 'network-request-failed':
+        return "Network error. Please check your connection.";
+      case "requires-recent-login":
+        return "For security, please log in again before performing this action.";
       default:
-        return e.message ?? "Authentication failed";
+        return e.message ?? "Authentication failed. Please try again.";
     }
   }
 }

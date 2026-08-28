@@ -32,6 +32,20 @@ class DatabaseService {
     return await mathCollections.doc(uid).update({"name": name});
   }
 
+  Future deleteUser() async {
+    return await mathCollections.doc(uid).delete();
+  }
+
+  Future isUserExists() async {
+    final snapshot = await mathCollections.doc(uid).get();
+    if (snapshot.exists){
+      return true;
+    } else {
+      return false;
+    }
+
+  }
+
   Future<UserRecord?> userDataForProfile() async {
     final snapshot = await mathCollections.doc(uid).get();
     if (snapshot.exists) {
