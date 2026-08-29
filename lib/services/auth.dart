@@ -9,14 +9,12 @@ import 'database.dart';
 
 class Auth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  bool _isGoogleSignInInitialized = false;
-  final String _serverClientId =
+  static const String _serverClientId =
       "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com";
-
-  Auth() {
-    _initializeGoogleSignIn();
-  }
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email'],
+    serverClientId: _serverClientId,
+  );
 
   MathUser? _userFromFireBase(User? user) {
     return user != null ? MathUser(uid: user.uid) : null;
@@ -197,9 +195,8 @@ class Auth {
 
   Future<AuthResult<void>> signOutMethod() async {
     try {
-      if (_isGoogleSignInInitialized) {
-        await _googleSignIn.signOut();
-      }
+      // It's safe to call signOut on both. GoogleSignIn will do nothing if not signed in.
+      await _googleSignIn.signOut();
       await _auth.signOut();
       return AuthResult.success(null);
     } on Exception {
@@ -214,8 +211,6 @@ class Auth {
         return AuthResult.failure("No user is currently signed in.");
       }
       String uid = user.uid;
-      
-      // Perform both Firestore deletion and Auth deletion in parallel
       await Future.wait([
         DatabaseService(uid: uid).deleteUser(),
         user.delete(),
@@ -229,73 +224,47 @@ class Auth {
     }
   }
 
-  Future<AuthResult<void>> _initializeGoogleSignIn() async {
-    try {
-      await _googleSignIn.initialize(serverClientId: _serverClientId);
-      _isGoogleSignInInitialized = true;
-      return AuthResult.success(null);
-    } on Exception {
-      return AuthResult.failure("Google Sign-In initialization failed.");
-    }
-  }
-
-  Future<void> _ensureGoogleSignInInitialized() async {
-    if (!_isGoogleSignInInitialized) {
-      await _initializeGoogleSignIn();
-    }
-  }
-
   Future<UserCredential> _googleSignInSupport(
     GoogleSignInAccount account,
   ) async {
-    final googleAuth = account.authentication;
-    final authClient = _googleSignIn.authorizationClient;
-    final authorization = await authClient.authorizationForScopes(['email']);
-
-    final credential = GoogleAuthProvider.credential(
-      accessToken: authorization?.accessToken,
+    final GoogleSignInAuthentication googleAuth = await account.authentication;
+    final OAuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    final UserCredential userCredential = await _auth.signInWithCredential(
+    return await _auth.signInWithCredential(
       credential,
     );
-    return userCredential;
   }
 
   Future<AuthResult<MathUser?>> signInWithGoogle() async {
-    _ensureGoogleSignInInitialized();
     try {
-      final GoogleSignInAccount? account = await _googleSignIn.authenticate(
-        scopeHint: ['email'],
-      );
-      if (account == null) return AuthResult.failure("Google Sign-In cancelled.");
+      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      if (account == null) {
+        return AuthResult.failure("Google Sign-In cancelled.");
+      }
 
       final UserCredential userCredential = await _googleSignInSupport(account);
       final User? user = userCredential.user;
-      final DatabaseService dbService = DatabaseService(uid: user!.uid);
-      final userData = await dbService.userData.first.timeout(
-        Duration(seconds: 5),
-        onTimeout: null,
-      );
-      if (userData.gameRecord == null || userData.gameRecord!.isEmpty) {
+
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
         await DatabaseService(
-          uid: user.uid,
+          uid: user!.uid,
         ).addUserData("Player", gameRecordInitialization);
       }
 
       return AuthResult.success(_userFromFireBase(user));
-    } on GoogleSignInException {
-      return AuthResult.failure("Google Sign-In failed. Please try again.");
+    } on FirebaseAuthException catch (e) {
+      return AuthResult.failure(_mapErrorCodeToMessage(e));
     } catch (e) {
       return AuthResult.failure("An error occurred during Google Sign-In.");
     }
   }
 
   Future<AuthResult<MathUser?>> attemptSilentSignIn() async {
-    await _ensureGoogleSignInInitialized();
     try {
-      final GoogleSignInAccount? account = await _googleSignIn
-          .attemptLightweightAuthentication();
+      final GoogleSignInAccount? account =
+          await _googleSignIn.signInSilently();
       if (account != null) {
         final UserCredential userCredential = await _googleSignInSupport(
           account,
@@ -305,11 +274,11 @@ class Auth {
       } else {
         return AuthResult.failure("No existing Google session found.");
       }
-    } on GoogleSignInException {
-      return AuthResult.failure("Automatic Sign-In failed.");
-    } catch (e) {
-      return AuthResult.failure("Silent Sign-In failed.");
-    }
+    } on FirebaseAuthException catch (e) {
+      return AuthResult.failure(_mapErrorCodeToMessage(e));
+    }    catch (e) {
+  return AuthResult.failure("An error occurred during Google Sign-In.");
+  }
   }
 
   String _mapErrorCodeToMessage(FirebaseException e) {
