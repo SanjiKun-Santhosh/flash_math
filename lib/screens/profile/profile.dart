@@ -1,4 +1,3 @@
-import 'package:flash_math/models/user_record.dart';
 import 'package:flash_math/screens/loading.dart';
 import 'package:flash_math/screens/profile/profile_support.dart';
 import 'package:flash_math/screens/template.dart';
@@ -6,6 +5,7 @@ import 'package:flash_math/screens/wrapper.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/shared/authresult.dart';
 import 'package:flash_math/shared/constants.dart';
+import 'package:flash_math/services/user_data_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -46,7 +46,7 @@ class _UserProfileState extends State<UserProfile> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mathUser = context.read<MathUser?>();
-      final userRecord = context.read<UserRecord?>();
+      final userRecord = context.read<UserDataRepository>().userRecord;
       if (mathUser != null) {
         context.read<HiveService>().loadProfileImage(mathUser.uid);
         _auth.checkAnonymousUser().then((value) {
@@ -145,10 +145,10 @@ class _UserProfileState extends State<UserProfile> {
   @override
   Widget build(BuildContext context) {
     final mathUser = context.watch<MathUser?>();
-    final userRecord = context.watch<UserRecord?>();
     final hiveService = context.watch<HiveService>();
+    final userRecord = context.watch<UserDataRepository>().userRecord;
     if (mathUser == null) {
-      return Template(child: Loading());
+      return const Template(child: Loading());
     }
 
     return _loading

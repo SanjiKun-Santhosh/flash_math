@@ -86,8 +86,8 @@ class _HomeState extends State<Home> {
               backgroundColor: Colors.transparent,
               body: SingleChildScrollView(
                 child: Container(
-                  padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
-                  margin: EdgeInsets.all(10),
+                  padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+                  margin: const EdgeInsets.all(10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -101,7 +101,7 @@ class _HomeState extends State<Home> {
                               ? FileImage(hiveService.profileImage!)
                               : null,
                           child: hiveService.profileImage == null
-                              ? Icon(Icons.person)
+                              ? const Icon(Icons.person)
                               : null,
                         ),
                       ),
@@ -111,7 +111,7 @@ class _HomeState extends State<Home> {
                         style: TextStyle(fontSize: 30,fontFamily: CustomFontStyle().primaryFont,fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 55),
-                      ListOfGames(fontSize: 30),
+                      const ListOfGames(fontSize: 30),
                     ],
                   ),
                 ),

@@ -7,8 +7,8 @@ import 'package:flash_math/services/database.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/user_record.dart';
 import '../screens/custom_sheets.dart';
+import '../services/user_data_repository.dart';
 
 class GameGenerator extends StatefulWidget {
   final String queryGame;
@@ -51,8 +51,7 @@ class _GameGeneratorState extends State<GameGenerator> {
   int _globalRecord = 0;
   final CustomSheets _alertDialog = CustomSheets();
   late final DatabaseService _service;
-  late GameRecord _selectedGameRecord;
-  late final UserRecord _streamUserRecord;
+  GameRecord? _selectedGameRecord;
   final Random _rand = Random();
   bool _isHighScore = false;
   bool _isInitialized = false;
@@ -87,7 +86,7 @@ class _GameGeneratorState extends State<GameGenerator> {
   }
 
   Future<void> _setupGame() async {
-    final userRecord = Provider.of<UserRecord?>(context, listen: false);
+    final userRecord = context.read<UserDataRepository>().userRecord;
     if (userRecord == null) {
       if (mounted) Navigator.pop(context);
       return;
@@ -108,8 +107,7 @@ class _GameGeneratorState extends State<GameGenerator> {
             userRecord.gameRecord![_gameType] ??
             gameTypesInitialisation(_gameType);
       }
-      _streamUserRecord = userRecord;
-      _currentRecord = _globalRecord = int.parse(_selectedGameRecord.record);
+      _currentRecord = _globalRecord = int.parse(_selectedGameRecord!.record);
       _levelUpAt = defaultLevelUpAt;
       _min = widget.min;
       _max = widget.max;
@@ -260,12 +258,12 @@ class _GameGeneratorState extends State<GameGenerator> {
     if (_levelCounter > _levelUpAt &&
         _levelIndex <= 5 &&
         widget.levelType != practiceLevel) {
-      setState(() {
+      if (mounted) setState(() {
         final Map<String, bool> updatedGameData = Map.of(
-          _selectedGameRecord.gameData,
+          _selectedGameRecord!.gameData,
         );
         updatedGameData[levelListKeys.elementAt(_levelIndex)] = true;
-        _selectedGameRecord.gameData = updatedGameData;
+        _selectedGameRecord!.gameData = updatedGameData;
         _levelUp(_levelIndex);
       });
       _stopProgress();
@@ -319,11 +317,14 @@ class _GameGeneratorState extends State<GameGenerator> {
   }
 
   void _updateRecordDatabase(int currentRecord) async {
-    if (widget.levelType != practiceLevel) {
-      _selectedGameRecord.record = currentRecord.toString();
-      Map<String, GameRecord>? data = _streamUserRecord.gameRecord;
+    if (widget.levelType != practiceLevel && _selectedGameRecord != null) {
+      final userRecord = context.read<UserDataRepository>().userRecord;
+      if (userRecord == null) return;
+
+      _selectedGameRecord!.record = currentRecord.toString();
+      Map<String, GameRecord>? data = userRecord.gameRecord;
       try {
-        data?.update(_gameTypeForDBProcessing, (update) => _selectedGameRecord);
+        data?.update(_gameTypeForDBProcessing, (update) => _selectedGameRecord!);
         if (data != null) {
           await _service.updateUserRecord(data);
         }

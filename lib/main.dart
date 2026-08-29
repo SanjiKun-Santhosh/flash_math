@@ -4,12 +4,12 @@ import 'package:flash_math/models/user.dart';
 import 'package:flash_math/models/user_record.dart';
 import 'package:flash_math/screens/home.dart';
 import 'package:flash_math/screens/profile/profile.dart';
-import 'package:flash_math/screens/register.dart';
 import 'package:flash_math/screens/template.dart';
 import 'package:flash_math/screens/wrapper.dart';
 import 'package:flash_math/services/auth.dart';
 import 'package:flash_math/services/database.dart';
 import 'package:flash_math/services/hive_service.dart';
+import 'package:flash_math/services/user_data_repository.dart';
 import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -45,17 +45,18 @@ void main() async {
             return HiveService();
           },
         ),
+        ChangeNotifierProxyProvider<DatabaseService?, UserDataRepository>(
+          create: (context) => UserDataRepository(
+            null,
+            Provider.of<HiveService>(context, listen: false),
+          ),
+          update: (context, dbService, previous) => UserDataRepository(
+            dbService,
+            Provider.of<HiveService>(context, listen: false),
+          ),
+        ),
       ],
-      child: Consumer<DatabaseService?>(
-        builder: (context, dbService, child) {
-          return StreamProvider<UserRecord?>.value(
-            value: dbService?.userData ?? Stream.value(null),
-            initialData: null,
-            child: child,
-          );
-        },
-        child: MyApp(),
-      ),
+      child: const MyApp(),
     ),
   );
 }

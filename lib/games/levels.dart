@@ -4,10 +4,10 @@ import 'package:flash_math/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user.dart';
-import '../models/user_record.dart';
 import '../services/hive_service.dart';
 import 'custom_level.dart';
 import 'game_generator.dart';
+import '../services/user_data_repository.dart';
 
 class Levels extends StatefulWidget {
   const Levels({super.key, required this.gameType});
@@ -32,7 +32,7 @@ class _LevelsState extends State<Levels> {
   void _setupLevels() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mathUser = context.read<MathUser?>();
-      final userRecord = Provider.of<UserRecord?>(context, listen: false);
+      final userRecord = context.read<UserDataRepository>().userRecord;
       if (userRecord == null) {
         setState(() {
           _loading = false;

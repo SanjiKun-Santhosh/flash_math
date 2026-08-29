@@ -46,33 +46,15 @@ class DatabaseService {
 
   }
 
-  Future<UserRecord?> userDataForProfile() async {
-    final snapshot = await mathCollections.doc(uid).get();
-    if (snapshot.exists) {
-      return _userDataFromSnapshots(snapshot);
-    } else {
+  UserRecord? _userDataFromSnapshot(DocumentSnapshot snapshot) {
+    if (!snapshot.exists) {
       return null;
     }
-  }
-
-  UserRecord _userDataFromSnapshots(DocumentSnapshot snapshot) {
     Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
-    Map<String, GameRecord>? gameRecordMap = {};
-    if (data != null && data["gameRecord"] != null) {
-      final rawData = Map<String, dynamic>.from(data["gameRecord"] as Map);
-      gameRecordMap = rawData.map(
-        (key, value) =>
-            MapEntry(key, GameRecord.fromJson(value as Map<String, dynamic>)),
-      );
-    }
-    return UserRecord(
-      uid: uid,
-      name: data?["name"] ?? "Player",
-      gameRecord: gameRecordMap,
-    );
+    return UserRecord.fromMap(uid, data ?? {});
   }
 
-  Stream<UserRecord> get userData {
-    return mathCollections.doc(uid).snapshots().map(_userDataFromSnapshots);
+  Stream<UserRecord?> get userData {
+    return mathCollections.doc(uid).snapshots().map(_userDataFromSnapshot);
   }
 }

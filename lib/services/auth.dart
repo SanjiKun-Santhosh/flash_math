@@ -9,21 +9,14 @@ import 'database.dart';
 
 class Auth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  bool _isGoogleSignInInitialized = false;
-  final String _serverClientId =
-      "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com";
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  Auth() {
-    _initializeGoogleSignIn();
-  }
-
-  MathUser? _userFromFireBase(User? user) {
+  MathUser? _userFromFirebase(User? user) {
     return user != null ? MathUser(uid: user.uid) : null;
   }
 
   Stream<MathUser?> get mathUser {
-    return _auth.authStateChanges().map(_userFromFireBase);
+    return _auth.authStateChanges().map(_userFromFirebase);
   }
 
   Future<AuthResult<MathUser?>> loginInAnonymously() async {
@@ -33,7 +26,7 @@ class Auth {
       await DatabaseService(
         uid: user!.uid,
       ).addUserData("Player", gameRecordInitialization);
-      return AuthResult.success(_userFromFireBase(user));
+      return AuthResult.success(_userFromFirebase(user));
     } on FirebaseException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     } catch (e) {
@@ -64,7 +57,7 @@ class Auth {
       final userCredential = await currentUser?.linkWithCredential(credential);
       User? user = userCredential?.user;
 
-      return AuthResult.success(_userFromFireBase(user));
+      return AuthResult.success(_userFromFirebase(user));
     } on FirebaseException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     } catch (e) {
@@ -82,7 +75,7 @@ class Auth {
         password: password,
       );
       User? user = credential.user;
-      return AuthResult.success(_userFromFireBase(user));
+      return AuthResult.success(_userFromFirebase(user));
     } on FirebaseException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     } catch (e) {
@@ -103,7 +96,7 @@ class Auth {
       await DatabaseService(
         uid: user!.uid,
       ).addUserData("Player", gameRecordInitialization);
-      return AuthResult.success(_userFromFireBase(user));
+      return AuthResult.success(_userFromFirebase(user));
     } on FirebaseException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     } catch (e) {
@@ -137,7 +130,7 @@ class Auth {
         if (password.isNotEmpty) {
           await user!.updatePassword(password);
         }
-        return AuthResult.success(_userFromFireBase(user));
+        return AuthResult.success(_userFromFirebase(user));
       } on FirebaseException catch (e) {
         return AuthResult.failure(_mapErrorCodeToMessage(e));
       } catch (e) {
@@ -155,7 +148,7 @@ class Auth {
         if (password.isNotEmpty) {
           await user!.updatePassword(password);
         }
-        return AuthResult.success(_userFromFireBase(user));
+        return AuthResult.success(_userFromFirebase(user));
       } on FirebaseException catch (e) {
         return AuthResult.failure(_mapErrorCodeToMessage(e));
       } catch (e) {
@@ -174,7 +167,7 @@ class Auth {
         if (email != currentEmail && email.isNotEmpty) {
           await user!.verifyBeforeUpdateEmail(email);
         }
-        return AuthResult.success(_userFromFireBase(user));
+        return AuthResult.success(_userFromFirebase(user));
       } on FirebaseException catch (e) {
         return AuthResult.failure(_mapErrorCodeToMessage(e));
       } catch (e) {
@@ -197,9 +190,7 @@ class Auth {
 
   Future<AuthResult<void>> signOutMethod() async {
     try {
-      if (_isGoogleSignInInitialized) {
-        await _googleSignIn.signOut();
-      }
+      await _googleSignIn.signOut();
       await _auth.signOut();
       return AuthResult.success(null);
     } on Exception {
@@ -229,86 +220,68 @@ class Auth {
     }
   }
 
-  Future<AuthResult<void>> _initializeGoogleSignIn() async {
-    try {
-      await _googleSignIn.initialize(serverClientId: _serverClientId);
-      _isGoogleSignInInitialized = true;
-      return AuthResult.success(null);
-    } on Exception {
-      return AuthResult.failure("Google Sign-In initialization failed.");
-    }
-  }
-
-  Future<void> _ensureGoogleSignInInitialized() async {
-    if (!_isGoogleSignInInitialized) {
-      await _initializeGoogleSignIn();
-    }
-  }
-
-  Future<UserCredential> _googleSignInSupport(
-    GoogleSignInAccount account,
-  ) async {
-    final googleAuth = account.authentication;
-    final authClient = _googleSignIn.authorizationClient;
-    final authorization = await authClient.authorizationForScopes(['email']);
-
-    final credential = GoogleAuthProvider.credential(
-      accessToken: authorization?.accessToken,
-      idToken: googleAuth.idToken,
-    );
-    final UserCredential userCredential = await _auth.signInWithCredential(
-      credential,
-    );
-    return userCredential;
-  }
-
   Future<AuthResult<MathUser?>> signInWithGoogle() async {
-    _ensureGoogleSignInInitialized();
     try {
-      final GoogleSignInAccount? account = await _googleSignIn.authenticate(
-        scopeHint: ['email'],
-      );
-      if (account == null) return AuthResult.failure("Google Sign-In cancelled.");
+      // 1. Trigger the Google Sign-In flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
-      final UserCredential userCredential = await _googleSignInSupport(account);
-      final User? user = userCredential.user;
-      final DatabaseService dbService = DatabaseService(uid: user!.uid);
-      final userData = await dbService.userData.first.timeout(
-        Duration(seconds: 5),
-        onTimeout: null,
-      );
-      if (userData.gameRecord == null || userData.gameRecord!.isEmpty) {
-        await DatabaseService(
-          uid: user.uid,
-        ).addUserData("Player", gameRecordInitialization);
+      // If the user cancelled the sign-in
+      if (googleUser == null) {
+        return AuthResult.failure("Google Sign-In cancelled.");
       }
 
-      return AuthResult.success(_userFromFireBase(user));
-    } on GoogleSignInException {
-      return AuthResult.failure("Google Sign-In failed. Please try again.");
+      // 2. Obtain auth details from the request
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // 3. Create a new credential for Firebase
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // 4. Sign in to Firebase with the credential
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      final User? user = userCredential.user;
+
+      if (user == null) {
+        return AuthResult.failure("Failed to sign in with Google.");
+      }
+
+      // 5. Check if this is a new user and create a database entry if so.
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        await DatabaseService(uid: user.uid)
+            .addUserData(user.displayName ?? "Player", gameRecordInitialization);
+      }
+
+      return AuthResult.success(_userFromFirebase(user));
+    } on FirebaseAuthException catch (e) {
+      return AuthResult.failure(_mapErrorCodeToMessage(e));
     } catch (e) {
-      return AuthResult.failure("An error occurred during Google Sign-In.");
+      return AuthResult.failure(
+          "An error occurred during Google Sign-In. Please try again.");
     }
   }
 
   Future<AuthResult<MathUser?>> attemptSilentSignIn() async {
-    await _ensureGoogleSignInInitialized();
     try {
-      final GoogleSignInAccount? account = await _googleSignIn
-          .attemptLightweightAuthentication();
+      final GoogleSignInAccount? account = await _googleSignIn.signInSilently();
       if (account != null) {
-        final UserCredential userCredential = await _googleSignInSupport(
-          account,
+        final googleAuth = await account.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
         );
-
-        return AuthResult.success(_userFromFireBase(userCredential.user));
+        final userCredential = await _auth.signInWithCredential(credential);
+        return AuthResult.success(_userFromFirebase(userCredential.user));
       } else {
         return AuthResult.failure("No existing Google session found.");
       }
-    } on GoogleSignInException {
-      return AuthResult.failure("Automatic Sign-In failed.");
     } catch (e) {
-      return AuthResult.failure("Silent Sign-In failed.");
+      // Silent sign-in can fail for many reasons (e.g., no network).
+      // We don't want to show a scary error to the user, just return a failure.
+      return AuthResult.failure("Automatic Sign-In failed.");
     }
   }
 
