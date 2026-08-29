@@ -11,10 +11,18 @@ class Auth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   static const String _serverClientId =
       "97362753510-o048dnbkrhopfuffqbjndhd06nugdouk.apps.googleusercontent.com";
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email'],
-    serverClientId: _serverClientId,
-  );
+
+  // 1. GoogleSignIn is now a Singleton instance
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  bool _isGoogleSignInInitialized = false;
+
+  /// Ensures GoogleSignIn is initialized with configuration before any call
+  Future<void> _ensureInitialized() async {
+    if (!_isGoogleSignInInitialized) {
+      await _googleSignIn.initialize(serverClientId: _serverClientId);
+      _isGoogleSignInInitialized = true;
+    }
+  }
 
   MathUser? _userFromFireBase(User? user) {
     return user != null ? MathUser(uid: user.uid) : null;
@@ -50,9 +58,9 @@ class Auth {
   }
 
   Future<AuthResult<MathUser?>> linkAnonymousWithCredentials(
-    String email,
-    String password,
-  ) async {
+      String email,
+      String password,
+      ) async {
     try {
       final currentUser = _auth.currentUser;
       AuthCredential credential = EmailAuthProvider.credential(
@@ -71,9 +79,9 @@ class Auth {
   }
 
   Future<AuthResult<MathUser?>> loginWithEmailAndPassword(
-    String email,
-    String password,
-  ) async {
+      String email,
+      String password,
+      ) async {
     try {
       UserCredential credential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -89,9 +97,9 @@ class Auth {
   }
 
   Future<AuthResult<MathUser?>> registerWithEmailAndPassword(
-    String email,
-    String password,
-  ) async {
+      String email,
+      String password,
+      ) async {
     try {
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -122,9 +130,9 @@ class Auth {
   }
 
   Future<AuthResult<MathUser?>> updateUserEmailAndPassword(
-    String email,
-    String password,
-  ) async {
+      String email,
+      String password,
+      ) async {
     if (await checkAnonymousUser() == false) {
       try {
         User? user = _auth.currentUser;
@@ -195,7 +203,7 @@ class Auth {
 
   Future<AuthResult<void>> signOutMethod() async {
     try {
-      // It's safe to call signOut on both. GoogleSignIn will do nothing if not signed in.
+      await _ensureInitialized();
       await _googleSignIn.signOut();
       await _auth.signOut();
       return AuthResult.success(null);
@@ -225,24 +233,28 @@ class Auth {
   }
 
   Future<UserCredential> _googleSignInSupport(
-    GoogleSignInAccount account,
-  ) async {
-    final GoogleSignInAuthentication googleAuth = await account.authentication;
+      GoogleSignInAccount account,
+      ) async {
+    // Synchronous access to Identity details (idToken)
+    final GoogleSignInAuthentication googleAuth = account.authentication;
+
+    // Explicitly request access token scope using authorizationClient
+    final GoogleSignInClientAuthorization clientAuth =
+    await account.authorizationClient.authorizeScopes(['email']);
+
     final OAuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
+      accessToken: clientAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    return await _auth.signInWithCredential(
-      credential,
-    );
+    return await _auth.signInWithCredential(credential);
   }
 
   Future<AuthResult<MathUser?>> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
-      if (account == null) {
-        return AuthResult.failure("Google Sign-In cancelled.");
-      }
+      await _ensureInitialized();
+
+      // 2. authenticate() replaces signIn()
+      final GoogleSignInAccount account = await _googleSignIn.authenticate();
 
       final UserCredential userCredential = await _googleSignInSupport(account);
       final User? user = userCredential.user;
@@ -254,6 +266,8 @@ class Auth {
       }
 
       return AuthResult.success(_userFromFireBase(user));
+    } on GoogleSignInException catch (e) {
+      return AuthResult.failure("Google Sign-In cancelled or failed (${e.code.name}).");
     } on FirebaseAuthException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
     } catch (e) {
@@ -263,8 +277,12 @@ class Auth {
 
   Future<AuthResult<MathUser?>> attemptSilentSignIn() async {
     try {
+      await _ensureInitialized();
+
+      // 3. attemptLightweightAuthentication() replaces signInSilently()
       final GoogleSignInAccount? account =
-          await _googleSignIn.signInSilently();
+      await _googleSignIn.attemptLightweightAuthentication();
+
       if (account != null) {
         final UserCredential userCredential = await _googleSignInSupport(
           account,
@@ -276,9 +294,9 @@ class Auth {
       }
     } on FirebaseAuthException catch (e) {
       return AuthResult.failure(_mapErrorCodeToMessage(e));
-    }    catch (e) {
-  return AuthResult.failure("An error occurred during Google Sign-In.");
-  }
+    } catch (e) {
+      return AuthResult.failure("An error occurred during Google Sign-In.");
+    }
   }
 
   String _mapErrorCodeToMessage(FirebaseException e) {
